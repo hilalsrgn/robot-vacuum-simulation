@@ -12,8 +12,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.animation.AnimationTimer;
 
+
+
 public class HelloController
 {
+    private boolean[][] visitedCells;
+
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
     private AnimationTimer simulationTimer;
     private Room room; // Kızların odasına buradan erişeceğiz
@@ -72,7 +76,7 @@ public class HelloController
         Room room = new Room(14, 20);
 
         Robot robot =
-                new Robot(new Position(5,5));
+                new Robot(new Position(13,0));
 
         room.setRobot(robot);
 
@@ -184,13 +188,88 @@ public class HelloController
                             if (room != null && room.getRobot() != null) {
                                 Robot robot = room.getRobot();
                                 Position currentPos = robot.getPosition();
+                                // HAFIZA KARTI KONTROLÜ: Eğer hafıza kartı boşsa, odanın boyutuna göre oluştur
+                                if (visitedCells == null) {
+                                    visitedCells = new boolean[room.getRows()][room.getCols()];
+                                    // Robotun şu an durduğu yeri "temizlendi" olarak işaretle
+                                    visitedCells[currentPos.getRow()][currentPos.getCol()] = true;
+                                }
 
-                                // 2. GEÇİCİ HAREKET TESTİ (Sağa doğru bir adım at)
-                                // Not: Asıl algoritmaları yazana kadar robotun yürüdüğünü görmek için
-                                int nextCol = currentPos.getCol() + 1;
-                                if (nextCol < room.getCols()) {
-                                    Position nextPos = new Position(currentPos.getRow(), nextCol);
-                                    robot.move(nextPos); // Robotun şarjı düşer, konumu değişir
+                                // 2. SEÇİLEN ALGORİTMAYA GÖRE HAREKET ET
+                                RadioButton selectedAlgo = (RadioButton) algorithmGroup.getSelectedToggle();
+
+                                if (selectedAlgo != null) {
+                                    String algoName = selectedAlgo.getText();
+
+                                    // ==========================================
+                                    // GERÇEK SPİRAL ALGORİTMASI (Dıştan İçe Daralan)
+                                    // ==========================================
+                                    if (algoName.equals("Spiral")) {
+                                        int currentRow = currentPos.getRow();
+                                        int currentCol = currentPos.getCol();
+
+                                        int nextRow = currentRow;
+                                        int nextCol = currentCol;
+
+                                        // 1. Hedef hücreyi hesapla
+                                        if (robot.getDirection() == model.Direction.RIGHT) nextCol++;
+                                        else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
+                                        else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
+                                        else if (robot.getDirection() == model.Direction.UP) nextRow--;
+
+                                        // 2. Çarpışma Kontrolü: Duvara Mı Çarptı? VEYA Daha önce temizlediği yere mi geldi?
+                                        boolean hitWall = nextRow < 0 || nextRow >= room.getRows() || nextCol < 0 || nextCol >= room.getCols();
+                                        boolean alreadyCleaned = !hitWall && visitedCells[nextRow][nextCol];
+
+                                        if (!hitWall && !alreadyCleaned) {
+                                            // Önü boş ve kirliyse ilerle, orayı hafızaya temizlendi olarak yaz
+                                            robot.move(new Position(nextRow, nextCol));
+                                            visitedCells[nextRow][nextCol] = true;
+                                        } else {
+                                            // Duvara VEYA temizlenmiş bölgeye çarptığı an içe doğru (saat yönünde) dön!
+                                            if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.DOWN);
+                                            else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.LEFT);
+                                            else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.UP);
+                                            else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.RIGHT);
+
+                                            System.out.println("Spiral Daralıyor: Dönüş yapıldı!");
+                                        }
+                                    }
+
+                                    // ==========================================
+                                    // DUVAR TAKİP ALGORİTMASI (Edge Follow)
+                                    // ==========================================
+                                    else if (algoName.equals("Duvar Takip")) {
+                                        int currentRow = currentPos.getRow();
+                                        int currentCol = currentPos.getCol();
+
+                                        // Temel mantık: Robot sürekli dış çeperdeki (0. satır/sütun veya son satır/sütun) duvarı takip eder
+                                        int nextRow = currentRow;
+                                        int nextCol = currentCol;
+
+                                        if (robot.getDirection() == model.Direction.RIGHT) nextCol++;
+                                        else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
+                                        else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
+                                        else if (robot.getDirection() == model.Direction.UP) nextRow--;
+
+                                        // Önü özgürse ve hala duvar kenarındaysa ilerle
+                                        if (nextRow >= 0 && nextRow < room.getRows() && nextCol >= 0 && nextCol < room.getCols()) {
+                                            robot.move(new Position(nextRow, nextCol));
+                                        } else {
+                                            // Köşeye geldiği an yön değiştirip odayı çevrelesin
+                                            if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.DOWN);
+                                            else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.LEFT);
+                                            else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.UP);
+                                            else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.RIGHT);
+
+                                            System.out.println("Duvar Takip: Köşeye gelindi, dönülüyor...");
+                                        }
+                                    }
+
+                                    // RASTGELE MODU (Senin stratejin doğrultusunda pas geçildi)
+                                    else if (algoName.equals("Rastgele")) {
+                                        System.out.println("Rastgele modu mobilyalardan sonra kodlanacak.");
+                                    }
                                 }
 
                                 // 3. EKRANI GÜNCELLE (Kızların draw metodu çalışsın)
