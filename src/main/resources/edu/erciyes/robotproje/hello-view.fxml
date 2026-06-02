@@ -1,226 +1,126 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="edu.erciyes.robotproje.HelloController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/26" fx:controller="edu.erciyes.robotproje.HelloController">
 
   <top>
-    <HBox alignment="CENTER"
-          prefHeight="80"
-          style="-fx-background-color:#0B1F3A;">
-      <Label text="Robot Süpürge Simülasyonu"
-             style="-fx-text-fill:white;
-                          -fx-font-size:32;
-                          -fx-font-weight:bold;"/>
+    <HBox alignment="CENTER" prefHeight="80" style="-fx-background-color:#0B1F3A;">
+      <Label style="-fx-text-fill:white;                           -fx-font-size:32;                           -fx-font-weight:bold;" text="Robot Süpürge Simülasyonu" />
     </HBox>
   </top>
 
 
     <left>
-      <VBox prefWidth="220"
-            spacing="6"
-            style="-fx-background-color:#102B4E;
-                 -fx-padding:10;">
+      <VBox prefWidth="220" spacing="6" style="-fx-background-color:#102B4E;                  -fx-padding:10;">
 
-      <Label text="🔧 Araçlar"
-             style="-fx-text-fill:white;
-                          -fx-font-size:15;
-                          -fx-font-weight:bold;"/>
+      <Label style="-fx-text-fill:white;                           -fx-font-size:15;                           -fx-font-weight:bold;" text="🔧 Araçlar" />
 
-      <Button text="Kir Ekle"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#2F80ED;
-                           -fx-text-fill:white;
-                           -fx-font-size:14;"/>
+      <Button fx:id="addDirtButton" maxWidth="9999" prefHeight="28" style="-fx-background-color:#2F80ED;                            -fx-text-fill:white;                            -fx-font-size:14;" text="Kir Ekle" />
 
-      <Label text="Kir Türü"
-             style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
+      <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="Kir Türü" />
 
-      <RadioButton text="Toz"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="dustRadioButton" style="-fx-text-fill:white;" text="Toz" />
 
-      <RadioButton text="Sıvı"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="liquidRadioButton" style="-fx-text-fill:white;" text="Sıvı" />
 
-      <RadioButton text="Leke"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="stainRadioButton" style="-fx-text-fill:white;" text="Leke" />
 
-      <Button text="Mobilya Ekle"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#27AE60;
-                           -fx-text-fill:white;
-                           -fx-font-size:14;"/>
+      <Button fx:id="addObstacleButton" maxWidth="9999" prefHeight="28" style="-fx-background-color:#27AE60;                            -fx-text-fill:white;                            -fx-font-size:14;" text="Mobilya Ekle" />
 
-      <Separator/>
+      <Separator />
 
-      <Label text="⚡ Robot Hızı"
-             style="-fx-text-fill:white;
-                          -fx-font-size:15;
-                          -fx-font-weight:bold;"/>
+      <Label style="-fx-text-fill:white;                           -fx-font-size:15;                           -fx-font-weight:bold;" text="⚡ Robot Hızı" />
 
-      <Slider fx:id="speedSlider"
-              min="0.5"
-              max="2.0"
-              value="1.0"/>
+      <Slider fx:id="speedSlider" max="2.0" min="0.5" value="1.0" />
 
-      <Label fx:id="speedLabel"
-             text="1.0x"
-             style="-fx-text-fill:white;"/>
+      <Label fx:id="speedLabel" style="-fx-text-fill:white;" text="1.0x" />
 
-      <Separator/>
+      <Separator />
 
-      <Label text="⚙ Temizlik Algoritması"
-             style="-fx-text-fill:white;
-                          -fx-font-size:15;
-                          -fx-font-weight:bold;"/>
+      <Label style="-fx-text-fill:white;                           -fx-font-size:15;                           -fx-font-weight:bold;" text="⚙ Temizlik Algoritması" />
 
-      <RadioButton text="Rastgele"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="randomRadioButton" style="-fx-text-fill:white;" text="Rastgele" />
 
-      <RadioButton text="Spiral"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="spiralRadioButton" style="-fx-text-fill:white;" text="Spiral" />
 
-      <RadioButton text="Duvar Takip"
-                   style="-fx-text-fill:white;"/>
+      <RadioButton fx:id="wallFollowRadioButton" style="-fx-text-fill:white;" text="Duvar Takip" />
 
-      <Separator/>
+      <Separator />
 
-      <Label text="🤖 Robot Durumu"
-             style="-fx-text-fill:white;
-              -fx-font-size:15;
-              -fx-font-weight:bold;"/>
+      <Label style="-fx-text-fill:white;               -fx-font-size:15;               -fx-font-weight:bold;" text="🤖 Robot Durumu" />
 
-      <Label text="Konum: (0,0)"
-             fx:id="positionLabel"
-             style="-fx-text-fill:white;"/>
+      <Label fx:id="positionLabel" style="-fx-text-fill:white;" text="Konum: (0,0)" />
 
-      <Label text="Yön: Sağ"
-             fx:id="directionLabel"
-             style="-fx-text-fill:white;"/>
+      <Label fx:id="directionLabel" style="-fx-text-fill:white;" text="Yön: Sağ" />
 
-      <Label text="Batarya"
-             style="-fx-text-fill:white;"/>
+      <Label style="-fx-text-fill:white;" text="Batarya" />
 
-      <ProgressBar fx:id="batteryBar"
-                   progress="1.0"/>
+      <ProgressBar fx:id="batteryBar" progress="1.0" />
 
-      <Separator/>
+      <Separator />
 
-      <Label text="🎮 Kontroller"
-             style="-fx-text-fill:white;
-              -fx-font-size:15;
-              -fx-font-weight:bold;"/>
+      <Label style="-fx-text-fill:white;               -fx-font-size:15;               -fx-font-weight:bold;" text="🎮 Kontroller" />
 
-      <Button text="▶ Başlat"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#2F80ED;
-               -fx-text-fill:white;
-               -fx-font-size:14;"/>
+      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#2F80ED;                -fx-text-fill:white;                -fx-font-size:14;" text="▶ Başlat" />
 
-      <Button text="⏸ Duraklat"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#6C757D;
-               -fx-text-fill:white;
-               -fx-font-size:14;"/>
+      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#6C757D;                -fx-text-fill:white;                -fx-font-size:14;" text="⏸ Duraklat" />
 
-      <Button text="🔄 Sıfırla"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#DC3545;
-               -fx-text-fill:white;
-               -fx-font-size:14;"/>
+      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#DC3545;                -fx-text-fill:white;                -fx-font-size:14;" text="🔄 Sıfırla" />
 
-      <Button text="🏠 İstasyona Dön"
-              prefHeight="28"
-              maxWidth="9999"
-              style="-fx-background-color:#17A2B8;
-               -fx-text-fill:white;
-               -fx-font-size:14;"/>
+      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#17A2B8;                -fx-text-fill:white;                -fx-font-size:14;" text="🏠 İstasyona Dön" />
 
 
       </VBox>
     </left>
   <center>
-    <AnchorPane fx:id="simulationPane"
-                style="-fx-background-color:#EAD7B8;">
+    <AnchorPane fx:id="simulationPane" style="-fx-background-color:#EAD7B8;">
     </AnchorPane>
   </center>
 
   <bottom>
-    <HBox prefHeight="90"
-          spacing="40"
-          alignment="CENTER"
-          style="-fx-background-color:#0B1F3A;
-                 -fx-padding:10;">
+    <HBox alignment="CENTER" prefHeight="90" spacing="40" style="-fx-background-color:#0B1F3A;                  -fx-padding:10;">
 
       <VBox alignment="CENTER">
-        <Label text="🔵 Toplam Alan"
-               style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
-        <Label text="400 m²"
-               fx:id="totalAreaLabel"
-               style="-fx-text-fill:white;
-                          -fx-font-size:18;
-                          -fx-font-weight:bold;"/>
+        <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="🔵 Toplam Alan" />
+        <Label fx:id="totalAreaLabel" style="-fx-text-fill:white;                           -fx-font-size:18;                           -fx-font-weight:bold;" text="400 m²" />
       </VBox>
 
-      <Separator orientation="VERTICAL"/>
+      <Separator orientation="VERTICAL" />
 
       <VBox alignment="CENTER">
-        <Label text="🟢 Temizlenen Alan"
-               style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
-        <Label text="0 m² (0%)"
-               fx:id="cleanedAreaLabel"
-               style="-fx-text-fill:white;
-                          -fx-font-size:18;
-                          -fx-font-weight:bold;"/>
+        <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="🟢 Temizlenen Alan" />
+        <Label fx:id="cleanedAreaLabel" style="-fx-text-fill:white;                           -fx-font-size:18;                           -fx-font-weight:bold;" text="0 m² (0%)" />
       </VBox>
 
-      <Separator orientation="VERTICAL"/>
+      <Separator orientation="VERTICAL" />
 
       <VBox alignment="CENTER">
-        <Label text="⚪ Kalan Alan"
-               style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
-        <Label text="400 m² (100%)"
-               fx:id="remainingAreaLabel"
-               style="-fx-text-fill:white;
-                          -fx-font-size:18;
-                          -fx-font-weight:bold;"/>
+        <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="⚪ Kalan Alan" />
+        <Label fx:id="remainingAreaLabel" style="-fx-text-fill:white;                           -fx-font-size:18;                           -fx-font-weight:bold;" text="400 m² (100%)" />
       </VBox>
 
-      <Separator orientation="VERTICAL"/>
+      <Separator orientation="VERTICAL" />
 
       <VBox alignment="CENTER">
-        <Label text="🕒 Geçen Süre"
-               style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
-        <Label text="00:00"
-               fx:id="timeLabel"
-               style="-fx-text-fill:white;
-                          -fx-font-size:18;
-                          -fx-font-weight:bold;"/>
+        <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="🕒 Geçen Süre" />
+        <Label fx:id="timeLabel" style="-fx-text-fill:white;                           -fx-font-size:18;                           -fx-font-weight:bold;" text="00:00" />
       </VBox>
 
-      <Separator orientation="VERTICAL"/>
+      <Separator orientation="VERTICAL" />
 
       <VBox alignment="CENTER">
-        <Label text="🧹 Toplanan Toz"
-               style="-fx-text-fill:white;
-                          -fx-font-size:14;"/>
-        <Label text="0%"
-               fx:id="dustLabel"
-               style="-fx-text-fill:white;
-                          -fx-font-size:18;
-                          -fx-font-weight:bold;"/>
+        <Label style="-fx-text-fill:white;                           -fx-font-size:14;" text="🧹 Toplanan Toz" />
+        <Label fx:id="dustLabel" style="-fx-text-fill:white;                           -fx-font-size:18;                           -fx-font-weight:bold;" text="0%" />
       </VBox>
 
     </HBox>
