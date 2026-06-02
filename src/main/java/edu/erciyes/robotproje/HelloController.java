@@ -3,10 +3,9 @@ package edu.erciyes.robotproje;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import model.Room;
+import model.*;
+import model.Cell;
 import view.SimulationCanvas;
-import model.Robot;
-import model.Position;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
@@ -85,7 +84,7 @@ public class HelloController
 
         room.setRobot(robot);
 
-        SimulationCanvas canvas =
+         canvas =
                 new SimulationCanvas(room);
 
         canvas.widthProperty().bind(
@@ -156,21 +155,38 @@ public class HelloController
                 if (selectedDirt != null) {
 
                     // Görsel bir yuvarlak oluşturuyoruz (İleride kızlarla bunu .png resimle değiştirebilirsiniz)
-                    Circle dirtVisual = new Circle(mouseX, mouseY, 8);
+                    double cellWidth =
+                            simulationPane.getWidth() / room.getCols();
 
-                    String dirtType = selectedDirt.getText();
-                    if (dirtType.equals("Toz")) {
-                        dirtVisual.setFill(Color.GRAY); // İleride: new ImagePattern(new Image("toz.png"))
-                    } else if (dirtType.equals("Sıvı")) {
-                        dirtVisual.setFill(Color.BLUE); // İleride: new ImagePattern(new Image("sivi.png"))
-                    } else if (dirtType.equals("Leke")) {
-                        dirtVisual.setFill(Color.DARKRED); // İleride: new ImagePattern(new Image("leke.png"))
+                    double cellHeight =
+                            simulationPane.getHeight() / room.getRows();
+
+                    int col =
+                            (int)(mouseX / cellWidth);
+
+                    int row =
+                            (int)(mouseY / cellHeight);
+
+                    DirtType dirtType = DirtType.DUST;
+
+                    if(selectedDirt == liquidRadioButton)
+                    {
+                        dirtType = DirtType.LIQUID;
+                    }
+                    else if(selectedDirt == stainRadioButton)
+                    {
+                        dirtType = DirtType.STAIN;
                     }
 
-                    // Kiri ekrana (pane içine) ekle
-                    simulationPane.getChildren().add(dirtVisual);
+                    room.getCell(row,col)
+                            .setDirt(
+                                    new Dirt(
+                                            new Position(row,col),
+                                            dirtType
+                                    )
+                            );
 
-                    System.out.println("Haritaya kir basıldı: " + dirtType);
+                    canvas.draw();
                 }
             }
         });
@@ -195,9 +211,7 @@ public class HelloController
                                 Position currentPos = robot.getPosition();
                                 // Eğer visitedCells null ise (yani Sıfırla'ya basılmışsa)
                                 // robotun konumunu en baştan başlat!
-                                if (visitedCells == null) {
-                                    robot.setPosition(new Position(13, 0));
-                                }
+
                                 // HAFIZA KARTI KONTROLÜ: Eğer hafıza kartı boşsa, odanın boyutuna göre oluştur
                                 if (visitedCells == null) {
                                     visitedCells = new boolean[room.getRows()][room.getCols()];
@@ -347,15 +361,16 @@ public class HelloController
                                 double robotVisualY = robot.getPosition().getRow() * cellHeight + (cellHeight/2);
 
                                 // Üzerine bastığı kiri ekrandan uçur
-                                simulationPane.getChildren().removeIf(node -> {
-                                    if (node instanceof javafx.scene.shape.Circle) {
-                                        javafx.scene.shape.Circle dirt = (javafx.scene.shape.Circle) node;
-                                        double distance = Math.hypot(dirt.getCenterX() - robotVisualX,
-                                                dirt.getCenterY() - robotVisualY);
-                                        return distance < cellWidth; // Aynı hücredeyse sil!
-                                    }
-                                    return false;
-                                });
+                                Cell currentCell =
+                                        room.getCell(
+                                                robot.getPosition().getRow(),
+                                                robot.getPosition().getCol()
+                                        );
+
+                                if(currentCell.isDirty())
+                                {
+                                    currentCell.setDirt(null);
+                                }
                             }
 
                             lastUpdate = now;
@@ -386,24 +401,46 @@ public class HelloController
     }
 
     @FXML
-    public void onSifirlaClick() {
-        if (simulationTimer != null) simulationTimer.stop();
+    public void onSifirlaClick()
+    {
+        simulationPane.getChildren().removeIf(node ->
+                node instanceof Circle
+        );
 
-        // Robotu en baştan tanımladığımız o konuma ışınla
-        if (room != null && room.getRobot() != null) {
-            room.getRobot().setPosition(new Position(13, 0));
-            room.getRobot().setDirection(model.Direction.RIGHT);
-
-            // Çizim motorunu tetikle
-            if (canvas != null) {
-                canvas.draw();
+        for(int row = 0; row < room.getRows(); row++)
+        {
+            for(int col = 0; col < room.getCols(); col++)
+            {
+                room.getCell(row,col)
+                        .setDirt(null);
             }
-
-            // Robotun hareket ettiği "visitedCells" haritasını tamamen sıfırla
-            visitedCells = null;
-
-            System.out.println("Robot zorla 13,0'a çekildi!");
         }
+
+        if(simulationTimer != null)
+        {
+            simulationTimer.stop();
+        }
+
+        room.getRobot().setPosition(
+                new Position(13,0)
+        );
+
+        room.getRobot().setDirection(
+                model.Direction.RIGHT
+        );
+
+        visitedCells =
+                new boolean[
+                        room.getRows()
+                        ][
+                        room.getCols()
+                        ];
+
+        visitedCells[13][0] = true;
+
+        canvas.draw();
+        System.out.println(
+                "Simülasyon sıfırlandı.");
     }
 }
 

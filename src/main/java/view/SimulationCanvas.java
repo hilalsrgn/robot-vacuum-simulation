@@ -2,6 +2,10 @@ package view;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import model.Cell;
+import model.DirtType;
 import model.Room;
 import model.Robot;
 
@@ -17,6 +21,26 @@ public class SimulationCanvas extends Canvas
         widthProperty().addListener(evt -> draw());
         heightProperty().addListener(evt -> draw());
     }
+    private final Image dustImage =
+            new Image(
+                    getClass().getResourceAsStream(
+                            "/images/dust.png"
+                    )
+            );
+
+    private final Image liquidImage =
+            new Image(
+                    getClass().getResourceAsStream(
+                            "/images/splash.png"
+                    )
+            );
+
+    private final Image stainImage =
+            new Image(
+                    getClass().getResourceAsStream(
+                            "/images/spots.png"
+                    )
+            );
 
     @Override
     public boolean isResizable()
@@ -55,6 +79,19 @@ public class SimulationCanvas extends Canvas
                         cellWidth,
                         cellHeight
                 );
+                Cell cell = room.getCell(row,col);
+
+                if(cell.isDirty())
+                {
+                    drawDirt(
+                            gc,
+                            cell,
+                            col * cellWidth,
+                            row * cellHeight,
+                            cellWidth,
+                            cellHeight
+                    );
+                }
             }
         }
         gc.setFont(new javafx.scene.text.Font(12));
@@ -246,4 +283,40 @@ public class SimulationCanvas extends Canvas
             15
     );
 }
+
+    private void drawDirt(
+            GraphicsContext gc,
+            Cell cell,
+            double x,
+            double y,
+            double width,
+            double height)
+    {
+        Image dirtImage = null;
+
+        if(cell.getDirt().getType() ==
+                DirtType.DUST)
+        {
+            dirtImage = dustImage;
+        }
+        else if(cell.getDirt().getType() ==
+                DirtType.LIQUID)
+        {
+            dirtImage = liquidImage;
+        }
+        else if(cell.getDirt().getType() ==
+                DirtType.STAIN)
+        {
+            dirtImage = stainImage;
+        }
+
+        gc.drawImage(
+                dirtImage,
+                x,
+                y,
+                width,
+                height
+        );
+    }
+
     }
