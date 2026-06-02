@@ -8,6 +8,7 @@ import model.Room;
 import view.SimulationCanvas;
 import model.Robot;
 import model.Position;
+
 public class HelloController
 {
     @FXML
@@ -39,6 +40,7 @@ public class HelloController
     public void initialize()
     {
         Room room = new Room(14, 20);
+
         Robot robot =
                 new Robot(new Position(5,5));
 
@@ -55,9 +57,7 @@ public class HelloController
 
         simulationPane.getChildren().add(canvas);
 
-        // Geçici test verileri
         positionLabel.setText("Konum: (0,0)");
         directionLabel.setText("Yön: Sağ");
         batteryBar.setProgress(1.0);
-    }
-}
+    } }
