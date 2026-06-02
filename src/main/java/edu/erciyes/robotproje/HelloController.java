@@ -7,9 +7,17 @@ import model.Room;
 import view.SimulationCanvas;
 import model.Robot;
 import model.Position;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.Color;
+import javafx.animation.AnimationTimer;
 
 public class HelloController
 {
+    @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
+    private AnimationTimer simulationTimer;
+    private Room room; // Kızların odasına buradan erişeceğiz
+    private SimulationCanvas canvas; // Çizim tuvaline erişim
     @FXML private Button addDirtButton;
     @FXML private Button addObstacleButton;
     @FXML private RadioButton dustRadioButton;
@@ -129,6 +137,94 @@ public class HelloController
             System.out.println("Mod Değişti: Haritaya mobilya/engel ekleyebilirsiniz.");
         });
 
+        // SADECE KİR EKLEME VE GÖRSELLEŞTİRME KODU
+        simulationPane.setOnMouseClicked(event -> {
+            double mouseX = event.getX();
+            double mouseY = event.getY();
+
+            if (currentInteractionMode.equals("DIRT")) {
+                RadioButton selectedDirt = (RadioButton) dirtTypeGroup.getSelectedToggle();
+                if (selectedDirt != null) {
+
+                    // Görsel bir yuvarlak oluşturuyoruz (İleride kızlarla bunu .png resimle değiştirebilirsiniz)
+                    Circle dirtVisual = new Circle(mouseX, mouseY, 8);
+
+                    String dirtType = selectedDirt.getText();
+                    if (dirtType.equals("Toz")) {
+                        dirtVisual.setFill(Color.GRAY); // İleride: new ImagePattern(new Image("toz.png"))
+                    } else if (dirtType.equals("Sıvı")) {
+                        dirtVisual.setFill(Color.BLUE); // İleride: new ImagePattern(new Image("sivi.png"))
+                    } else if (dirtType.equals("Leke")) {
+                        dirtVisual.setFill(Color.DARKRED); // İleride: new ImagePattern(new Image("leke.png"))
+                    }
+
+                    // Kiri ekrana (pane içine) ekle
+                    simulationPane.getChildren().add(dirtVisual);
+
+                    System.out.println("Haritaya kir basıldı: " + dirtType);
+                }
+            }
+        });
+        startButton.setOnAction(e -> {
+            if (simulationTimer == null) {
+                simulationTimer = new AnimationTimer() {
+                    private long lastUpdate = 0;
+
+                    @Override
+                    public void handle(long now) {
+                        // 1. Hız çubuğundan değeri al (1.0x, 2.0x vs.)
+                        double speedFactor = speedSlider.getValue();
+
+                        // Hıza göre adım atma süresini hesapla (Normali saniyede 1 adım)
+                        long interval = (long) (1_000_000_000 / speedFactor);
+
+                        if (now - lastUpdate >= interval) {
+
+                            // Güvenlik kontrolü: Robot veya oda yoksa patlamasın
+                            if (room != null && room.getRobot() != null) {
+                                Robot robot = room.getRobot();
+                                Position currentPos = robot.getPosition();
+
+                                // 2. GEÇİCİ HAREKET TESTİ (Sağa doğru bir adım at)
+                                // Not: Asıl algoritmaları yazana kadar robotun yürüdüğünü görmek için
+                                int nextCol = currentPos.getCol() + 1;
+                                if (nextCol < room.getCols()) {
+                                    Position nextPos = new Position(currentPos.getRow(), nextCol);
+                                    robot.move(nextPos); // Robotun şarjı düşer, konumu değişir
+                                }
+
+                                // 3. EKRANI GÜNCELLE (Kızların draw metodu çalışsın)
+                                if (canvas != null) {
+                                    canvas.draw();
+                                }
+
+                                // 4. KİRLERİ SİLME EFEKTİ (Senin eklediğin yuvarlaklar)
+                                // Robotun yeni piksel koordinatlarını hesaplıyoruz
+                                double cellWidth = simulationPane.getWidth() / room.getCols();
+                                double cellHeight = simulationPane.getHeight() / room.getRows();
+                                double robotVisualX = robot.getPosition().getCol() * cellWidth + (cellWidth/2);
+                                double robotVisualY = robot.getPosition().getRow() * cellHeight + (cellHeight/2);
+
+                                // Üzerine bastığı kiri ekrandan uçur
+                                simulationPane.getChildren().removeIf(node -> {
+                                    if (node instanceof javafx.scene.shape.Circle) {
+                                        javafx.scene.shape.Circle dirt = (javafx.scene.shape.Circle) node;
+                                        double distance = Math.hypot(dirt.getCenterX() - robotVisualX,
+                                                dirt.getCenterY() - robotVisualY);
+                                        return distance < cellWidth; // Aynı hücredeyse sil!
+                                    }
+                                    return false;
+                                });
+                            }
+
+                            lastUpdate = now;
+                        }
+                    }
+                };
+                simulationTimer.start();
+                System.out.println("MOTOR ÇALIŞTI! Robot hareket ediyor...");
+            }
+        });
     }
 }
 
