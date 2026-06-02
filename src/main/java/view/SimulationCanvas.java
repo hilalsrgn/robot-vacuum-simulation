@@ -91,6 +91,24 @@ public class SimulationCanvas extends Canvas
                     robot.getPosition().getRow() * cellHeight
                             - (size - cellHeight) / 2;
 
+            // --- SİHİRLİ DÖNÜŞ KODU BAŞLANGICI ---
+            double centerX = x + size / 2;
+            double centerY = y + size / 2;
+
+            double angle = 0;
+
+            // Kızların çizimi varsayılan olarak YUKARI bakıyor. Doğru açılar:
+            if (robot.getDirection() == model.Direction.RIGHT) angle = 90;
+            else if (robot.getDirection() == model.Direction.DOWN) angle = 180;
+            else if (robot.getDirection() == model.Direction.LEFT) angle = 270;
+            else if (robot.getDirection() == model.Direction.UP) angle = 0;
+
+            gc.save();
+            gc.translate(centerX, centerY);
+            gc.rotate(angle);
+            gc.translate(-centerX, -centerY);
+            // --- SİHİRLİ DÖNÜŞ KODU BİTİŞİ ---
+
             // Gölge
             gc.setFill(javafx.scene.paint.Color.rgb(0,0,0,0.25));
             gc.fillOval(
@@ -196,7 +214,7 @@ public class SimulationCanvas extends Canvas
                     4,
                     4
             );
-
+            gc.restore();
         }
 
         }private void drawSofa(

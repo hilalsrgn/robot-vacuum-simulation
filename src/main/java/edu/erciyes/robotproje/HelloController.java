@@ -16,6 +16,9 @@ import javafx.animation.AnimationTimer;
 
 public class HelloController
 {
+
+    // Bunu en tepeye, diğer @FXML tanımlarının yanına ekle
+    private Position startPosition = new Position(13, 0);
     private boolean[][] visitedCells;
 
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
@@ -73,10 +76,12 @@ public class HelloController
     @FXML
     public void initialize()
     {
-        Room room = new Room(14, 20);
+        room = new Room(14, 20);
 
-        Robot robot =
-                new Robot(new Position(13,0));
+        Robot robot = new Robot(new Position(13,0));
+        // Robot şarj istasyonundan çıkarken yüzü sağa (odanın içine) dönük olsun!
+        robot.setDirection(model.Direction.RIGHT);
+        room.setRobot(robot);
 
         room.setRobot(robot);
 
@@ -188,6 +193,11 @@ public class HelloController
                             if (room != null && room.getRobot() != null) {
                                 Robot robot = room.getRobot();
                                 Position currentPos = robot.getPosition();
+                                // Eğer visitedCells null ise (yani Sıfırla'ya basılmışsa)
+                                // robotun konumunu en baştan başlat!
+                                if (visitedCells == null) {
+                                    robot.setPosition(new Position(13, 0));
+                                }
                                 // HAFIZA KARTI KONTROLÜ: Eğer hafıza kartı boşsa, odanın boyutuna göre oluştur
                                 if (visitedCells == null) {
                                     visitedCells = new boolean[room.getRows()][room.getCols()];
@@ -202,67 +212,119 @@ public class HelloController
                                     String algoName = selectedAlgo.getText();
 
                                     // ==========================================
-                                    // GERÇEK SPİRAL ALGORİTMASI (Dıştan İçe Daralan)
+                                    // SPİRAL ALGORİTMASI (Anında Dönen ve Eve Dönüşlü)
                                     // ==========================================
-                                    if (algoName.equals("Spiral")) {
+                                     if (algoName.equals("Spiral")) {
                                         int currentRow = currentPos.getRow();
                                         int currentCol = currentPos.getCol();
 
                                         int nextRow = currentRow;
                                         int nextCol = currentCol;
 
-                                        // 1. Hedef hücreyi hesapla
+                                        // 1. Mevcut yöne göre önündeki hücreyi hesapla
                                         if (robot.getDirection() == model.Direction.RIGHT) nextCol++;
-                                        else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
-                                        else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
                                         else if (robot.getDirection() == model.Direction.UP) nextRow--;
+                                        else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
+                                        else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
 
-                                        // 2. Çarpışma Kontrolü: Duvara Mı Çarptı? VEYA Daha önce temizlediği yere mi geldi?
                                         boolean hitWall = nextRow < 0 || nextRow >= room.getRows() || nextCol < 0 || nextCol >= room.getCols();
                                         boolean alreadyCleaned = !hitWall && visitedCells[nextRow][nextCol];
 
                                         if (!hitWall && !alreadyCleaned) {
-                                            // Önü boş ve kirliyse ilerle, orayı hafızaya temizlendi olarak yaz
+                                            // Önü boşsa hiç vakit kaybetmeden dümdüz devam et
                                             robot.move(new Position(nextRow, nextCol));
                                             visitedCells[nextRow][nextCol] = true;
                                         } else {
-                                            // Duvara VEYA temizlenmiş bölgeye çarptığı an içe doğru (saat yönünde) dön!
-                                            if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.DOWN);
-                                            else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.LEFT);
-                                            else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.UP);
-                                            else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.RIGHT);
+                                            // 2. ÖNÜ TIKALIYSA: Bir sonraki dönüş yönünü ANINDA belirle (Bekleme/Fır dönme bitti!)
+                                            model.Direction nextDir = robot.getDirection();
+                                            if (robot.getDirection() == model.Direction.RIGHT) nextDir = model.Direction.UP;
+                                            else if (robot.getDirection() == model.Direction.UP) nextDir = model.Direction.LEFT;
+                                            else if (robot.getDirection() == model.Direction.LEFT) nextDir = model.Direction.DOWN;
+                                            else if (robot.getDirection() == model.Direction.DOWN) nextDir = model.Direction.RIGHT;
 
-                                            System.out.println("Spiral Daralıyor: Dönüş yapıldı!");
+                                            int turnRow = currentRow;
+                                            int turnCol = currentCol;
+                                            if (nextDir == model.Direction.RIGHT) turnCol++;
+                                            else if (nextDir == model.Direction.UP) turnRow--;
+                                            else if (nextDir == model.Direction.LEFT) turnCol--;
+                                            else if (nextDir == model.Direction.DOWN) turnRow++;
+
+                                            boolean turnHitWall = turnRow < 0 || turnRow >= room.getRows() || turnCol < 0 || turnCol >= room.getCols();
+                                            boolean turnAlreadyCleaned = !turnHitWall && visitedCells[turnRow][turnCol];
+
+                                            if (!turnHitWall && !turnAlreadyCleaned) {
+                                                // Yeni yönü salisaniyede hesapla ve kafayı o yöne çevirip anında adım at!
+                                                robot.setDirection(nextDir);
+                                                robot.move(new Position(turnRow, turnCol));
+                                                visitedCells[turnRow][turnCol] = true;
+                                            } else {
+                                                // 3. İKİ YÖN DE TIKALIYSA: Spiral tamamen bitti, merkeze ulaşıldı!
+                                                // Şimdi robotu akıllıca (13, 0) ŞARJ İSTASYONUNA geri yürütüyoruz
+                                                int startRow = room.getRows() - 1;
+                                                int startCol = 0;
+
+                                                if (currentRow == startRow && currentCol == startCol) {
+                                                    // İstasyona sağ salim vardı, yüzünü odaya dön ve motoru kapat!
+                                                    robot.setDirection(model.Direction.RIGHT);
+                                                    System.out.println("Spiral temizliği bitti, robot yuvaya dönüp park etti.");
+                                                    simulationTimer.stop();
+                                                } else {
+                                                    // Adım adım istasyona doğru en kısa yoldan geri dönüş rotası
+                                                    if (currentRow < startRow) {
+                                                        robot.setDirection(model.Direction.DOWN);
+                                                        robot.move(new Position(currentRow + 1, currentCol));
+                                                    } else if (currentCol > startCol) {
+                                                        robot.setDirection(model.Direction.LEFT);
+                                                        robot.move(new Position(currentRow, currentCol - 1));
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
 
                                     // ==========================================
-                                    // DUVAR TAKİP ALGORİTMASI (Edge Follow)
+                                    // DUVAR TAKİP ALGORİTMASI (İstasyona Dönüp Duran Versiyon)
                                     // ==========================================
                                     else if (algoName.equals("Duvar Takip")) {
                                         int currentRow = currentPos.getRow();
                                         int currentCol = currentPos.getCol();
 
-                                        // Temel mantık: Robot sürekli dış çeperdeki (0. satır/sütun veya son satır/sütun) duvarı takip eder
                                         int nextRow = currentRow;
                                         int nextCol = currentCol;
 
+                                        // 1. Mevcut yöne göre bir sonraki adımı hesapla
                                         if (robot.getDirection() == model.Direction.RIGHT) nextCol++;
                                         else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
                                         else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
                                         else if (robot.getDirection() == model.Direction.UP) nextRow--;
 
-                                        // Önü özgürse ve hala duvar kenarındaysa ilerle
-                                        if (nextRow >= 0 && nextRow < room.getRows() && nextCol >= 0 && nextCol < room.getCols()) {
-                                            robot.move(new Position(nextRow, nextCol));
-                                        } else {
-                                            // Köşeye geldiği an yön değiştirip odayı çevrelesin
-                                            if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.DOWN);
-                                            else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.LEFT);
-                                            else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.UP);
-                                            else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.RIGHT);
+                                        // Odanın başlangıç noktasını (Şarj İstasyonunu) otomatik bul
+                                        int startRow = room.getRows() - 1; // 13. satır
+                                        int startCol = 0;                  // 0. sütun
 
-                                            System.out.println("Duvar Takip: Köşeye gelindi, dönülüyor...");
+                                        // İSTASYON KONTROLÜ: Bir sonraki adım istasyonsa temizliği bitir!
+                                        if (nextRow == startRow && nextCol == startCol) {
+                                            robot.move(new Position(startRow, startCol)); // İstasyona tam gir
+                                            robot.setDirection(model.Direction.RIGHT);    // Yüzünü odaya dönerek park et
+
+                                            System.out.println("Görev tamamlandı! Robot istasyona döndü ve şarja geçiyor.");
+                                            simulationTimer.stop(); // Motoru kapat
+                                        }
+                                        else {
+                                            // 2. Duvara çarptı mı kontrolü
+                                            boolean hitWall = nextRow < 0 || nextRow >= room.getRows() || nextCol < 0 || nextCol >= room.getCols();
+
+                                            if (!hitWall) {
+                                                // Önü boşsa hiç bozmadan dümdüz ilerle
+                                                robot.move(new Position(nextRow, nextCol));
+                                                visitedCells[nextRow][nextCol] = true;
+                                            } else {
+                                                // Köşeye gelince Saat Yönünde (sağdan yukarı, yukarıdan sola) dön!
+                                                if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.UP);
+                                                else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.LEFT);
+                                                else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.DOWN);
+                                                else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.RIGHT);
+                                            }
                                         }
                                     }
 
@@ -272,7 +334,7 @@ public class HelloController
                                     }
                                 }
 
-                                // 3. EKRANI GÜNCELLE (Kızların draw metodu çalışsın)
+                                // 3. EKRANI GÜNCELLE
                                 if (canvas != null) {
                                     canvas.draw();
                                 }
@@ -303,7 +365,45 @@ public class HelloController
                 simulationTimer.start();
                 System.out.println("MOTOR ÇALIŞTI! Robot hareket ediyor...");
             }
+            // İf bloğunun dışına çıktık, artık güvenle başlatabiliriz:
+            simulationTimer.start();
+            System.out.println("Simülasyon başlatıldı / devam ediyor!");
+
         });
+
+    }
+    // ==========================================
+    // BUTON KONTROLLERİ
+    // ==========================================
+
+    @FXML
+    public void onDuraklatClick() {
+        // Eğer motor çalışıyorsa anında durdur
+        if (simulationTimer != null) {
+            simulationTimer.stop();
+            System.out.println("Simülasyon duraklatıldı!");
+        }
+    }
+
+    @FXML
+    public void onSifirlaClick() {
+        if (simulationTimer != null) simulationTimer.stop();
+
+        // Robotu en baştan tanımladığımız o konuma ışınla
+        if (room != null && room.getRobot() != null) {
+            room.getRobot().setPosition(new Position(13, 0));
+            room.getRobot().setDirection(model.Direction.RIGHT);
+
+            // Çizim motorunu tetikle
+            if (canvas != null) {
+                canvas.draw();
+            }
+
+            // Robotun hareket ettiği "visitedCells" haritasını tamamen sıfırla
+            visitedCells = null;
+
+            System.out.println("Robot zorla 13,0'a çekildi!");
+        }
     }
 }
 

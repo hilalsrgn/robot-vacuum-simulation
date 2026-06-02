@@ -73,9 +73,9 @@
 
       <Button fx:id="startButton" maxWidth="9999" prefHeight="28" style="-fx-background-color:#2F80ED;                -fx-text-fill:white;                -fx-font-size:14;" text="▶ Başlat" />
 
-      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#6C757D;                -fx-text-fill:white;                -fx-font-size:14;" text="⏸ Duraklat" />
+      <Button maxWidth="9999" onAction="#onDuraklatClick" prefHeight="28" style="-fx-background-color:#6C757D;                -fx-text-fill:white;                -fx-font-size:14;" text="⏸ Duraklat" />
 
-      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#DC3545;                -fx-text-fill:white;                -fx-font-size:14;" text="🔄 Sıfırla" />
+      <Button maxWidth="9999" onAction="#onSifirlaClick" prefHeight="28" style="-fx-background-color:#DC3545;                -fx-text-fill:white;                -fx-font-size:14;" text="🔄 Sıfırla" />
 
       <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#17A2B8;                -fx-text-fill:white;                -fx-font-size:14;" text="🏠 İstasyona Dön" />
 
