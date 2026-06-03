@@ -129,17 +129,13 @@ public class SimulationCanvas extends Canvas
             gc.drawImage(
                     obstacleImage,
 
-                    obstacle.getPosition().getCol()
-                            * cellWidth,
+                    obstacle.getPosition().getCol() * cellWidth,
 
-                    obstacle.getPosition().getRow()
-                            * cellHeight,
+                    obstacle.getPosition().getRow() * cellHeight,
 
-                    obstacle.getWidth()
-                            * cellWidth,
+                    obstacle.getImageWidth() * cellWidth,
 
-                    obstacle.getHeight()
-                            * cellHeight
+                    obstacle.getImageHeight() * cellHeight
             );
         }
 

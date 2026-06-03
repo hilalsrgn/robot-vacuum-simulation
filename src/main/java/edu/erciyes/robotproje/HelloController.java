@@ -25,6 +25,7 @@ public class HelloController
     private Room room; // Kızların odasına buradan erişeceğiz
     private SimulationCanvas canvas; // Çizim tuvaline erişim
 
+
     @FXML private Button addDirtButton;
     @FXML private Button addObstacleButton;
     @FXML private RadioButton dustRadioButton;
@@ -91,17 +92,27 @@ public class HelloController
 
         room.getObstacles().add(
                 new Obstacle(
-                        new Position(1, 6),
-                        6,
-                        6,
+                        new Position(1,7),
+
+                        4,5,
+
+                        3,2,
+
+                        1,1,
+
                         "/images/sofa.png"
                 )
         );
         room.getObstacles().add(
                 new Obstacle(
-                        new Position(5, 7),
-                        6,
-                        6,
+                        new Position(6,8),
+
+                        4,4,
+
+                        4,2,
+
+                        1,0,
+
                         "/images/table.png"
                 )
         );
@@ -109,10 +120,42 @@ public class HelloController
 
         room.getObstacles().add(
                 new Obstacle(
-                        new Position(5, 2),
-                        4,
-                        4,
+                        new Position(5,3),
+
+                        4,4,
+
+                        2,2,
+
+                        1,1,
+
                         "/images/armchair.png"
+                )
+        );
+
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(1,1),
+
+                        1,1,   // görsel boyutu
+
+                        1,1,   // çarpışma boyutu
+
+                        0,0,   // offset
+
+                        "/images/plant.png"
+                )
+        );
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(11,17),
+
+                        1,1,
+
+                        1,1,
+
+                        0,0,
+
+                        "/images/plant.png"
                 )
         );
 
@@ -122,17 +165,19 @@ public class HelloController
                 room.getObstacles())
         {
             int startRow =
-                    obstacle.getPosition().getRow();
+                    obstacle.getPosition().getRow()
+                            + obstacle.getCollisionRowOffset();
 
             int startCol =
-                    obstacle.getPosition().getCol();
+                    obstacle.getPosition().getCol()
+                            + obstacle.getCollisionColOffset();
 
             for(int r = startRow;
-                r < startRow + obstacle.getHeight();
+                r < startRow + obstacle.getCollisionHeight();
                 r++)
             {
                 for(int c = startCol;
-                    c < startCol + obstacle.getWidth();
+                    c < startCol + obstacle.getCollisionWidth();
                     c++)
                 {
                     room.getCell(r,c)
@@ -256,6 +301,14 @@ public class HelloController
                     else if(selectedDirt == stainRadioButton)
                     {
                         dirtType = DirtType.STAIN;
+                    }
+
+                    if(room.getCell(row,col).isObstacle())
+                    {
+                        System.out.println(
+                                "Mobilyanın üzerine kir eklenemez!"
+                        );
+                        return;
                     }
 
                     room.getCell(row,col)

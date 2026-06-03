@@ -3,19 +3,41 @@ package model;
 public class Obstacle {
 
     private Position position;
-    private int width;
-    private int height;
+
+    // Görsel boyutu
+    private int imageWidth;
+    private int imageHeight;
+
+    // Çarpışma boyutu
+    private int collisionWidth;
+    private int collisionHeight;
+
+    private int collisionRowOffset;
+    private int collisionColOffset;
+
     private String imagePath;
 
     public Obstacle(
             Position position,
-            int width,
-            int height,
+            int imageWidth,
+            int imageHeight,
+            int collisionWidth,
+            int collisionHeight,
+            int collisionRowOffset,
+            int collisionColOffset,
             String imagePath)
     {
         this.position = position;
-        this.width = width;
-        this.height = height;
+
+        this.imageWidth = imageWidth;
+        this.imageHeight = imageHeight;
+
+        this.collisionWidth = collisionWidth;
+        this.collisionHeight = collisionHeight;
+
+        this.collisionRowOffset = collisionRowOffset;
+        this.collisionColOffset = collisionColOffset;
+
         this.imagePath = imagePath;
     }
 
@@ -23,15 +45,36 @@ public class Obstacle {
         return position;
     }
 
-    public int getWidth() {
-        return width;
+    public int getImageWidth()
+    {
+        return imageWidth;
     }
 
-    public int getHeight() {
-        return height;
+    public int getImageHeight()
+    {
+        return imageHeight;
+    }
+
+    public int getCollisionWidth()
+    {
+        return collisionWidth;
+    }
+
+    public int getCollisionHeight()
+    {
+        return collisionHeight;
     }
 
     public String getImagePath() {
         return imagePath;
+    }
+    public int getCollisionRowOffset()
+    {
+        return collisionRowOffset;
+    }
+
+    public int getCollisionColOffset()
+    {
+        return collisionColOffset;
     }
 }
