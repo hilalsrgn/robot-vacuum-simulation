@@ -64,8 +64,9 @@
       <Label fx:id="directionLabel" style="-fx-text-fill:white;" text="Yön: Sağ" />
 
       <Label style="-fx-text-fill:white;" text="Batarya" />
+         <Label fx:id="batteryPercentageLabel" prefHeight="17.0" prefWidth="88.0" text="\%100.0" textFill="WHITE" />
 
-      <ProgressBar fx:id="batteryBar" progress="1.0" />
+      <ProgressBar fx:id="batteryBar" prefHeight="18.0" prefWidth="172.0" progress="1.0" />
 
       <Separator />
 

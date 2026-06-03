@@ -31,8 +31,12 @@ public class HelloController
     @FXML private RadioButton liquidRadioButton;
     @FXML private RadioButton stainRadioButton;
 
+
     // Şu an hangi aracın (kir mi mobilya mı) seçili olduğunu akılda tutmak için bir değişken
     private String currentInteractionMode = "NONE"; // NONE, DIRT, OBSTACLE
+
+    @FXML private Label batteryPercentageLabel;
+
     @FXML
     private Slider speedSlider;
 
@@ -74,6 +78,10 @@ public class HelloController
     @FXML
     private Label dustLabel;
 
+    private int initialDirtCount = 0;
+    private boolean[][] initiallyDirty;
+
+    private boolean isRunning = false;
     private int elapsedSeconds = 0;
     private long lastSecondUpdate = 0;
     @FXML
@@ -161,6 +169,12 @@ public class HelloController
 
         // SADECE KİR EKLEME VE GÖRSELLEŞTİRME KODU
         simulationPane.setOnMouseClicked(event -> {
+
+            // Simülasyon çalışıyorsa kir eklemeyi engelle
+            if (isRunning) {
+                return;
+            }
+
             double mouseX = event.getX();
             double mouseY = event.getY();
 
@@ -206,6 +220,7 @@ public class HelloController
         });
         startButton.setOnAction(e -> {
             if (simulationTimer == null) {
+                isRunning = true;
                 simulationTimer = new AnimationTimer() {
                     private long lastUpdate = 0;
 
@@ -383,16 +398,22 @@ public class HelloController
                                         System.out.println("Rastgele modu mobilyalardan sonra kodlanacak.");
                                     }
                                     // ========================================================
-                                    // YENİ KODU TAM OLARAK BURAYA, O PARANTEZİN ALTINA YAPIŞTIR:
-                                    // ========================================================
+                                // MERKEZİ PANEL GÜNCELLEME KODU (ALAN VE TOZ HESABI)
+                                // ========================================================
                                     int totalCells = room.getRows() * room.getCols();
-
                                     int cleanedCells = 0;
+                                    int cleanedDirtCount = 0; // Temizlenen kirleri sayacağımız sayaç
+
                                     if (visitedCells != null) {
                                         for (int r = 0; r < room.getRows(); r++) {
                                             for (int c = 0; c < room.getCols(); c++) {
                                                 if (visitedCells[r][c]) {
                                                     cleanedCells++;
+
+                                                    // Eğer robotun bastığı bu hücrede başlangıçta kir varsa, temizlendi sayıyoruz
+                                                    if (initiallyDirty != null && initiallyDirty[r][c]) {
+                                                        cleanedDirtCount++;
+                                                    }
                                                 }
                                             }
                                         }
@@ -404,12 +425,85 @@ public class HelloController
                                     int cleanedPercent = (int) Math.round(((double) cleanedCells / totalCells) * 100);
                                     int remainingPercent = (int) Math.round(((double) remainingCells / totalCells) * 100);
 
+                                // M² Etiketlerini Güncelle
                                     cleanedAreaLabel.setText(cleanedCells + " m² (" + cleanedPercent + "%)");
                                     remainingAreaLabel.setText(remainingCells + " m² (" + remainingPercent + "%)");
+
+                                // --- YENİ: TOZ YÜZDESİNİ HESAPLA VE EKRANA BAS ---
+                                    int dirtPercent = 0;
+                                    if (initialDirtCount > 0) {
+                                        dirtPercent = (int) Math.round(((double) cleanedDirtCount / initialDirtCount) * 100);
+                                    }
+                                    if (dustLabel != null) {
+                                        dustLabel.setText(cleanedDirtCount + " / " + initialDirtCount + " (" + dirtPercent + "%)");
+                                    }
+
                                     // ========================================================
+                                // ROBOT DURUMU VE GERÇEKÇİ BATARYA GÜNCELLEMESİ
+                                // ========================================================
+                                    Position pos = room.getRobot().getPosition();
+
+                                // 1. Konumu Ekrana Yazdır
+                                    if (positionLabel != null) {
+                                        positionLabel.setText("Konum: (" + pos.getRow() + "," + pos.getCol() + ")");
+                                    }
+
+                                 // 2. Yönü Ekrana Yazdır
+                                    if (directionLabel != null) {
+                                        String yonStr = "Bilinmiyor";
+                                        switch (room.getRobot().getDirection()) {
+                                            case UP: yonStr = "Yukarı"; break;
+                                            case DOWN: yonStr = "Aşağı"; break;
+                                            case LEFT: yonStr = "Sol"; break;
+                                            case RIGHT: yonStr = "Sağ"; break;
+                                        }
+                                        directionLabel.setText("Yön: " + yonStr);
+                                    }
+
+                                // 3. Batarya ve Gerçekçi Temizlik Mantığı
+                                    int r = pos.getRow();
+                                    int c = pos.getCol();
+
+                                    if (room.getCell(r, c).getDirt() != null) {
+                                        DirtType currentDirtType = room.getCell(r, c).getDirt().getType();
+                                        room.getRobot().cleanDirt(currentDirtType); // Kir zorluğuna göre şarj yer
+                                        room.getCell(r, c).setDirt(null);
+                                    }
+
+                                    // --- KAYBOLAN TOZ YÜZDESİ KODUMUZ ---
+                                    cleanedDirtCount = 0;
+                                    if (visitedCells != null && initiallyDirty != null) {
+                                        for (int satir = 0; satir < room.getRows(); satir++) {
+                                            for (int sutun = 0; sutun < room.getCols(); sutun++) {
+                                                if (visitedCells[satir][sutun] && initiallyDirty[satir][sutun]) {
+                                                    cleanedDirtCount++;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    dirtPercent = 0;
+                                    if (initialDirtCount > 0) {
+                                        dirtPercent = (int) Math.round(((double) cleanedDirtCount / initialDirtCount) * 100);
+                                    }
+                                    if (dustLabel != null) {
+                                        dustLabel.setText(cleanedDirtCount + " / " + initialDirtCount + " (" + dirtPercent + "%)");
+                                    }
+
+                                 // 4. Batarya Çubuğunu ve Yüzde Yazısını Güncelle
+                                    if (batteryBar != null) {
+                                        double guncelBatarya = room.getRobot().getBatteryLevel();
+                                        batteryBar.setProgress(guncelBatarya / 100.0);
+
+                                        // Küsuratı kaybetmeden yüzdeyi yazdır (Örn: %96.5)
+                                        if (batteryPercentageLabel != null) {
+                                            batteryPercentageLabel.setText("%" + String.format("%.1f", guncelBatarya));
+                                        }
+                                    }
+                                // ========================================================
+
 
                                 }
-
                                 // 3. EKRANI GÜNCELLE
                                 if (canvas != null) {
                                     canvas.draw();
@@ -441,6 +535,22 @@ public class HelloController
                 };
                 simulationTimer.start();
                 System.out.println("MOTOR ÇALIŞTI! Robot hareket ediyor...");
+
+                isRunning = true;
+
+            // --- BAŞLANGIÇTAKİ KİRLERİ HAFIZAYA ALMA KODU ---
+                initialDirtCount = 0;
+                initiallyDirty = new boolean[room.getRows()][room.getCols()];
+
+                for (int r = 0; r < room.getRows(); r++) {
+                    for (int c = 0; c < room.getCols(); c++) {
+                        if (room.getCell(r, c).getDirt() != null) {
+                            initiallyDirty[r][c] = true;
+                            initialDirtCount++;
+                        }
+                    }
+                }
+
             }
             // İf bloğunun dışına çıktık, artık güvenle başlatabiliriz:
             simulationTimer.start();
@@ -459,12 +569,16 @@ public class HelloController
         if (simulationTimer != null) {
             simulationTimer.stop();
             System.out.println("Simülasyon duraklatıldı!");
+
+            isRunning = false;
         }
     }
 
     @FXML
     public void onSifirlaClick()
     {
+        isRunning = false;
+
         simulationPane.getChildren().removeIf(node ->
                 node instanceof Circle
         );
@@ -506,6 +620,28 @@ public class HelloController
 
         elapsedSeconds = 0;
         if (timeLabel != null) timeLabel.setText("00:00");
+
+        initialDirtCount = 0;
+        initiallyDirty = null;
+        if (dustLabel != null) {
+            dustLabel.setText("0 / 0 (0%)");
+        }
+
+        int totalCells = room.getRows() * room.getCols();
+        if (cleanedAreaLabel != null) cleanedAreaLabel.setText("0 m² (0%)");
+        if (remainingAreaLabel != null) remainingAreaLabel.setText(totalCells + " m² (100%)");
+
+        // Robotun gerçek bataryasını fulle
+        room.getRobot().setBatteryLevel(100.0);
+
+        if (batteryBar != null) batteryBar.setProgress(1.0);
+        if (positionLabel != null) positionLabel.setText("Konum: (13,0)");
+        if (directionLabel != null) directionLabel.setText("Yön: Sağ");
+
+        if (batteryPercentageLabel != null) {
+            batteryPercentageLabel.setText("%100.0");
+        }
+
     }
 }
 

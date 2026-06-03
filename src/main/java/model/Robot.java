@@ -23,6 +23,10 @@ public class Robot {
     public Direction getDirection() { return direction; }
     public void setDirection(Direction direction) { this.direction = direction; }
     public double getBatteryLevel() { return batteryLevel; }
+    public void setBatteryLevel(double batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
+
     public double getSpeed() { return speed; }
     public void setSpeed(double speed) { this.speed = speed; }
     public int getCleanedCells() { return cleanedCells; }
@@ -81,10 +85,10 @@ public class Robot {
         // PDF'te "farklı kirler farklı batarya harcar ve süre alır" maddesi için:
         switch (type) {
             case DUST:
-                decreaseBattery(1.0); // Toz kolay temizlenir
+                decreaseBattery(2.0); // Toz kolay temizlenir
                 break;
             case LIQUID:
-                decreaseBattery(2.0); // Sıvı biraz daha zor
+                decreaseBattery(2.5); // Sıvı biraz daha zor
                 break;
             case STAIN:
                 decreaseBattery(3.5); // Leke zor temizlenir, çok şarj yer
