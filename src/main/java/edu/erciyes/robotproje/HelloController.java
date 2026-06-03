@@ -24,6 +24,7 @@ public class HelloController
     private AnimationTimer simulationTimer;
     private Room room; // Kızların odasına buradan erişeceğiz
     private SimulationCanvas canvas; // Çizim tuvaline erişim
+
     @FXML private Button addDirtButton;
     @FXML private Button addObstacleButton;
     @FXML private RadioButton dustRadioButton;
@@ -72,10 +73,23 @@ public class HelloController
 
     @FXML
     private Label dustLabel;
+
+    private int elapsedSeconds = 0;
+    private long lastSecondUpdate = 0;
     @FXML
     public void initialize()
     {
         room = new Room(14, 20);
+
+        // Odanın gerçek hücre sayısını (toplam alanı) hesapla
+        int totalArea = room.getRows() * room.getCols();
+
+// Alt paneli simülasyon açılır açılmaz gerçek değerlerle doldur
+        if (totalAreaLabel != null) {
+            totalAreaLabel.setText(totalArea + " m²");
+            remainingAreaLabel.setText(totalArea + " m² (100%)");
+            cleanedAreaLabel.setText("0 m² (0%)");
+        }
 
         Robot robot = new Robot(new Position(13,0));
         // Robot şarj istasyonundan çıkarken yüzü sağa (odanın içine) dönük olsun!
@@ -197,6 +211,28 @@ public class HelloController
 
                     @Override
                     public void handle(long now) {
+
+                        // Zamanlayıcı ilk kez veya duraklatıldıktan sonra çalışıyorsa referansı ayarla
+                        if (lastSecondUpdate == 0) {
+                            lastSecondUpdate = now;
+                        }
+
+                    // Tam 1 saniye (1.000.000.000 nanosaniye) geçtiyse sayacı artır
+                        if (now - lastSecondUpdate >= 1_000_000_000L) {
+                            elapsedSeconds++;
+                            lastSecondUpdate = now;
+
+                            // Saniyeyi 00:00 formatına çevir
+                            int minutes = elapsedSeconds / 60;
+                            int seconds = elapsedSeconds % 60;
+                            String timeString = String.format("%02d:%02d", minutes, seconds);
+
+                            // Ekrana bas
+                            if (timeLabel != null) {
+                                timeLabel.setText(timeString);
+                            }
+                        }
+
                         // 1. Hız çubuğundan değeri al (1.0x, 2.0x vs.)
                         double speedFactor = speedSlider.getValue();
 
@@ -346,6 +382,32 @@ public class HelloController
                                     else if (algoName.equals("Rastgele")) {
                                         System.out.println("Rastgele modu mobilyalardan sonra kodlanacak.");
                                     }
+                                    // ========================================================
+                                    // YENİ KODU TAM OLARAK BURAYA, O PARANTEZİN ALTINA YAPIŞTIR:
+                                    // ========================================================
+                                    int totalCells = room.getRows() * room.getCols();
+
+                                    int cleanedCells = 0;
+                                    if (visitedCells != null) {
+                                        for (int r = 0; r < room.getRows(); r++) {
+                                            for (int c = 0; c < room.getCols(); c++) {
+                                                if (visitedCells[r][c]) {
+                                                    cleanedCells++;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    int obstacleCount = 0;
+                                    int remainingCells = totalCells - cleanedCells - obstacleCount;
+
+                                    int cleanedPercent = (int) Math.round(((double) cleanedCells / totalCells) * 100);
+                                    int remainingPercent = (int) Math.round(((double) remainingCells / totalCells) * 100);
+
+                                    cleanedAreaLabel.setText(cleanedCells + " m² (" + cleanedPercent + "%)");
+                                    remainingAreaLabel.setText(remainingCells + " m² (" + remainingPercent + "%)");
+                                    // ========================================================
+
                                 }
 
                                 // 3. EKRANI GÜNCELLE
@@ -441,6 +503,9 @@ public class HelloController
         canvas.draw();
         System.out.println(
                 "Simülasyon sıfırlandı.");
+
+        elapsedSeconds = 0;
+        if (timeLabel != null) timeLabel.setText("00:00");
     }
 }
 
