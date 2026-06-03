@@ -8,6 +8,7 @@ import model.Cell;
 import model.DirtType;
 import model.Room;
 import model.Robot;
+import model.Obstacle;
 
 
 public class SimulationCanvas extends Canvas
@@ -62,6 +63,8 @@ public class SimulationCanvas extends Canvas
 
     public void draw()
     {
+
+
         GraphicsContext gc = getGraphicsContext2D();
 
         gc.clearRect(0,0,getWidth(),getHeight());
@@ -113,6 +116,33 @@ public class SimulationCanvas extends Canvas
                     row * cellHeight + cellHeight / 2
             );
         }
+
+        for(Obstacle obstacle : room.getObstacles())
+        {
+            Image obstacleImage =
+                    new Image(
+                            getClass().getResourceAsStream(
+                                    obstacle.getImagePath()
+                            )
+                    );
+
+            gc.drawImage(
+                    obstacleImage,
+
+                    obstacle.getPosition().getCol()
+                            * cellWidth,
+
+                    obstacle.getPosition().getRow()
+                            * cellHeight,
+
+                    obstacle.getWidth()
+                            * cellWidth,
+
+                    obstacle.getHeight()
+                            * cellHeight
+            );
+        }
+
         // Robot
         if(room.getRobot() != null)
         {

@@ -89,6 +89,58 @@ public class HelloController
     {
         room = new Room(14, 20);
 
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(1, 6),
+                        6,
+                        6,
+                        "/images/sofa.png"
+                )
+        );
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(5, 7),
+                        6,
+                        6,
+                        "/images/table.png"
+                )
+        );
+
+
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(5, 2),
+                        4,
+                        4,
+                        "/images/armchair.png"
+                )
+        );
+
+
+
+        for(Obstacle obstacle :
+                room.getObstacles())
+        {
+            int startRow =
+                    obstacle.getPosition().getRow();
+
+            int startCol =
+                    obstacle.getPosition().getCol();
+
+            for(int r = startRow;
+                r < startRow + obstacle.getHeight();
+                r++)
+            {
+                for(int c = startCol;
+                    c < startCol + obstacle.getWidth();
+                    c++)
+                {
+                    room.getCell(r,c)
+                            .setObstacle(true);
+                }
+            }
+        }
+
         // Odanın gerçek hücre sayısını (toplam alanı) hesapla
         int totalArea = room.getRows() * room.getCols();
 
@@ -292,7 +344,8 @@ public class HelloController
                                         else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
                                         else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
 
-                                        boolean hitWall = nextRow < 0 || nextRow >= room.getRows() || nextCol < 0 || nextCol >= room.getCols();
+                                         boolean hitWall =
+                                                 !isValidMove(nextRow,nextCol);
                                         boolean alreadyCleaned = !hitWall && visitedCells[nextRow][nextCol];
 
                                         if (!hitWall && !alreadyCleaned) {
@@ -314,7 +367,8 @@ public class HelloController
                                             else if (nextDir == model.Direction.LEFT) turnCol--;
                                             else if (nextDir == model.Direction.DOWN) turnRow++;
 
-                                            boolean turnHitWall = turnRow < 0 || turnRow >= room.getRows() || turnCol < 0 || turnCol >= room.getCols();
+                                            boolean turnHitWall =
+                                                    !isValidMove(turnRow,turnCol);
                                             boolean turnAlreadyCleaned = !turnHitWall && visitedCells[turnRow][turnCol];
 
                                             if (!turnHitWall && !turnAlreadyCleaned) {
@@ -377,7 +431,8 @@ public class HelloController
                                         }
                                         else {
                                             // 2. Duvara çarptı mı kontrolü
-                                            boolean hitWall = nextRow < 0 || nextRow >= room.getRows() || nextCol < 0 || nextCol >= room.getCols();
+                                            boolean hitWall =
+                                                    !isValidMove(nextRow,nextCol);
 
                                             if (!hitWall) {
                                                 // Önü boşsa hiç bozmadan dümdüz ilerle
@@ -642,6 +697,22 @@ public class HelloController
             batteryPercentageLabel.setText("%100.0");
         }
 
+    }
+
+    private boolean isValidMove(int row, int col)
+    {
+        // Oda dışına çıkma
+        if(row < 0 || row >= room.getRows())
+            return false;
+
+        if(col < 0 || col >= room.getCols())
+            return false;
+
+        // Mobilyaya girme
+        if(room.getCell(row,col).isObstacle())
+            return false;
+
+        return true;
     }
 }
 

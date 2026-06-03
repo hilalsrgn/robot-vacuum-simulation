@@ -1,4 +1,6 @@
 package model;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Room
 {
@@ -10,6 +12,9 @@ public class Room
     private Robot robot;
 
     private ChargingStation chargingStation;
+
+    private List<Obstacle> obstacles =
+            new ArrayList<>();
 
     public Room(int rows, int cols)
     {
@@ -65,5 +70,10 @@ public class Room
     public void setChargingStation(ChargingStation chargingStation)
     {
         this.chargingStation = chargingStation;
+    }
+
+    public List<Obstacle> getObstacles()
+    {
+        return obstacles;
     }
 }
