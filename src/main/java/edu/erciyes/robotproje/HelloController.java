@@ -184,9 +184,9 @@ public class HelloController
 
                         3,6,      // görsel boyutu
 
-                        2,5,      // çarpışma alanı
+                        1,4,      // çarpışma alanı
 
-                        0,0,      // offset
+                        1,1,      // offset
 
                         "/images/shelf.png"
                 )
@@ -332,7 +332,6 @@ public class HelloController
         {
             System.out.println("MOUSE BASILDI");
 
-            startReturnToStation();
         });
         // SADECE KİR EKLEME VE GÖRSELLEŞTİRME KODU
         simulationPane.setOnMouseClicked(event -> {
@@ -571,76 +570,195 @@ public class HelloController
                                         int c = currentPos.getCol();
                                         model.Direction dir = robot.getDirection();
 
-                                        // 1. Sağ, Sol ve Önümüzdeki koordinatları hesapla
-                                        model.Direction leftDir = dir.getLeftDirection();
-                                        int leftR = r, leftC = c;
-                                        if (leftDir == model.Direction.RIGHT) leftC++; else if (leftDir == model.Direction.LEFT) leftC--; else if (leftDir == model.Direction.UP) leftR--; else leftR++;
+                                        int startRow = room.getRows() - 1;
+                                        int startCol = 0;
 
-                                        model.Direction frontDir = dir;
-                                        int frontR = r, frontC = c;
-                                        if (frontDir == model.Direction.RIGHT) frontC++; else if (frontDir == model.Direction.LEFT) frontC--; else if (frontDir == model.Direction.UP) frontR--; else frontR++;
+                                        // 1. ODA GERÇEKTEN BİTTİ Mİ KONTROLÜ
+                                        boolean isRoomCompletelyClean = true;
+                                        for (int i = 0; i < visitedCells.length; i++) {
+                                            for (int j = 0; j < visitedCells[0].length; j++) {
+                                                if (isValidMove(i, j) && !visitedCells[i][j]) {
+                                                    isRoomCompletelyClean = false;
+                                                    break;
+                                                }
+                                            }
+                                            if (!isRoomCompletelyClean) break;
+                                        }
+
+                                        // 2. İSTASYONDA BEKLEME, ŞARJ OLMA VE KESİN BİTİŞ
+                                        if (r == startRow && c == startCol) {
+                                            if (isRoomCompletelyClean) {
+                                                // Gidecek hiçbir yer kalmadı, kusursuz kapanış!
+                                                robot.setDirection(model.Direction.RIGHT);
+                                                canvas.draw();
+                                                System.out.println("Tüm oda pırıl pırıl! Robot park etti.");
+                                                SoundEffect.supurgeSesiDurdur();
+                                                simulationTimer.stop();
+                                                return;
+                                            }
+                                            // Şarj %100 değilse şarj ol!
+                                            else if (batteryManager.getBatteryPercentage(robot) < 100.0) {
+                                                robot.setDirection(model.Direction.RIGHT);
+
+                                                // Pili doldur
+                                                batteryManager.chargeBattery(robot);
+                                                canvas.draw();
+
+                                                // --- EFSANE 3 SANİYE MOLA DETAYI ---
+                                                if (batteryManager.getBatteryPercentage(robot) >= 100.0) {
+                                                    System.out.println("Pil %100 doldu! Robot 3 saniye içinde göreve dönüyor...");
+                                                    simulationTimer.stop(); // Simülasyon motorunu geçici olarak durdur
+
+                                                    // Ekranı dondurmadan arka planda 7 saniye say
+                                                    javafx.animation.PauseTransition mola = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(7));
+
+                                                    // 7 saniye dolunca motoru tekrar çalıştır!
+                                                    mola.setOnFinished(e -> simulationTimer.start());
+                                                    mola.play(); // Sayacı başlat
+                                                } else {
+                                                    System.out.println("Robot şarj oluyor... Güncel Pil: %" + batteryManager.getBatteryPercentage(robot));
+                                                }
+
+                                                return; // Şarj ve mola süreci bitene kadar hareket kodlarına geçme!
+                                            }
+                                        }
+
+                                        // 3. ŞARJ DÜŞÜKSE ACİL İSTASYONA DÖNÜŞ (BATTERY MANAGER İLE)
+                                        if (batteryManager.isBatteryLow(robot)) {
+                                            // İstasyona kestirmeden dönüş
+                                            if (r < startRow && isValidMove(r + 1, c)) {
+                                                robot.setDirection(model.Direction.DOWN);
+                                                robot.move(new Position(r + 1, c));
+                                                return;
+                                            } else if (c > startCol && isValidMove(r, c - 1)) {
+                                                robot.setDirection(model.Direction.LEFT);
+                                                robot.move(new Position(r, c - 1));
+                                                return;
+                                            }
+                                        }
+
+                                        // --- DIŞTAN İÇE DARALAN VE EŞYA SARAN SPİRAL MANTIĞI ---
 
                                         model.Direction rightDir = dir.getRightDirection();
                                         int rightR = r, rightC = c;
                                         if (rightDir == model.Direction.RIGHT) rightC++; else if (rightDir == model.Direction.LEFT) rightC--; else if (rightDir == model.Direction.UP) rightR--; else rightR++;
 
-                                        // 2. Sadece Duvar/Engel kontrolü (Gidilebilir tüm yollar)
-                                        boolean validLeft = isValidMove(leftR, leftC);
-                                        boolean validFront = isValidMove(frontR, frontC);
+                                        model.Direction frontDir = dir;
+                                        int frontR = r, frontC = c;
+                                        if (frontDir == model.Direction.RIGHT) frontC++; else if (frontDir == model.Direction.LEFT) frontC--; else if (frontDir == model.Direction.UP) frontR--; else frontR++;
+
+                                        model.Direction leftDir = dir.getLeftDirection();
+                                        int leftR = r, leftC = c;
+                                        if (leftDir == model.Direction.RIGHT) leftC++; else if (leftDir == model.Direction.LEFT) leftC--; else if (leftDir == model.Direction.UP) leftR--; else leftR++;
+
+                                        boolean newRight = isValidMove(rightR, rightC) && !visitedCells[rightR][rightC];
+                                        boolean newFront = isValidMove(frontR, frontC) && !visitedCells[frontR][frontC];
+                                        boolean newLeft = isValidMove(leftR, leftC) && !visitedCells[leftR][leftC];
+
                                         boolean validRight = isValidMove(rightR, rightC);
+                                        boolean validFront = isValidMove(frontR, frontC);
+                                        boolean validLeft = isValidMove(leftR, leftC);
 
-                                        // 3. Temizlenmemiş yepyeni rotalar (ÖNCELİKLİ)
-                                        boolean newLeft = validLeft && !visitedCells[leftR][leftC];
-                                        boolean newFront = validFront && !visitedCells[frontR][frontC];
-                                        boolean newRight = validRight && !visitedCells[rightR][rightC];
 
-                                        // 4. Önce Temizlenmemiş Yerleri Sınır Takibiyle Ara
-                                        if (newLeft) {
-                                            robot.setDirection(leftDir);
-                                            robot.move(new Position(leftR, leftC));
-                                            visitedCells[leftR][leftC] = true;
-                                        } else if (newFront) {
-                                            robot.move(new Position(frontR, frontC));
-                                            visitedCells[frontR][frontC] = true;
-                                        } else if (newRight) {
+                                        // --- KUSURSUZ EŞYA SARAN SPİRAL MANTIĞI ---
+                                        if (newRight) {
                                             robot.setDirection(rightDir);
                                             robot.move(new Position(rightR, rightC));
                                             visitedCells[rightR][rightC] = true;
-                                        }
-                                        // 5. ÇIKMAZ SOKAKTAN KAÇIŞ: Temizlenmemiş yer kalmadıysa, eski yollardan geri dön!
-                                        else if (validFront) {
-                                            // Girdaba girmemek için önce DÜMDÜZ ileri gitmeyi dene! (Ok gibi oradan çık)
+                                        } else if (newFront) {
                                             robot.move(new Position(frontR, frontC));
-                                        } else if (validLeft) {
-                                            // Önü duvar/engelse sola dön
+                                            visitedCells[frontR][frontC] = true;
+                                        } else if (newLeft) {
                                             robot.setDirection(leftDir);
                                             robot.move(new Position(leftR, leftC));
-                                        } else if (validRight) {
-                                            // İkisi de tıkalıysa sağa dön
-                                            robot.setDirection(rightDir);
-                                            robot.move(new Position(rightR, rightC));
-                                        } else {
-                                            // 6. GERÇEKTEN GİDECEK HİÇBİR YER KALMADIYSA (Oda bitti)
-                                            int startRow = room.getRows() - 1;
-                                            int startCol = 0;
+                                            visitedCells[leftR][leftC] = true;
+                                        }
+                                        // --- AKILLI RADAR V2: KUSURSUZ YOL BULMA (GPS / BFS) ---
+                                        else {
+                                            // Robot temizlenmiş alanda sıkıştıysa, en yakın kire giden GÜVENLİ rotayı bulur
+                                            int rows = room.getRows();
+                                            int cols = room.getCols();
+                                            int[][] parentR = new int[rows][cols];
+                                            int[][] parentC = new int[rows][cols];
 
-                                            if (r == startRow && c == startCol) {
-                                                robot.setDirection(model.Direction.RIGHT);
-                                                System.out.println("Gelişmiş temizlik bitti, robot park etti!");
-                                                simulationTimer.stop();
-                                            } else {
-                                                // İstasyona doğru kestirmeden geri dönüş
-                                                if (r < startRow) {
-                                                    robot.setDirection(model.Direction.DOWN);
-                                                    robot.move(new Position(r + 1, c));
-                                                } else if (c > startCol) {
-                                                    robot.setDirection(model.Direction.LEFT);
-                                                    robot.move(new Position(r, c - 1));
+                                            for (int i = 0; i < rows; i++) {
+                                                for (int j = 0; j < cols; j++) {
+                                                    parentR[i][j] = -1;
+                                                    parentC[i][j] = -1;
                                                 }
+                                            }
+
+                                            java.util.Queue<Position> queue = new java.util.LinkedList<>();
+                                            boolean[][] bfsVisited = new boolean[rows][cols];
+
+                                            queue.add(new Position(r, c));
+                                            bfsVisited[r][c] = true;
+
+                                            int targetR = -1, targetC = -1;
+                                            boolean found = false;
+
+                                            // Yukarı, Aşağı, Sol, Sağ
+                                            int[] dRow = {-1, 1, 0, 0};
+                                            int[] dCol = {0, 0, -1, 1};
+
+                                            while (!queue.isEmpty()) {
+                                                Position curr = queue.poll();
+                                                int currR = curr.getRow();
+                                                int currC = curr.getCol();
+
+                                                // Temizlenmemiş (pis) ilk hedefi bulduk mu?
+                                                if (!visitedCells[currR][currC]) {
+                                                    targetR = currR;
+                                                    targetC = currC;
+                                                    found = true;
+                                                    break;
+                                                }
+
+                                                // Komşu kareleri tarayarak güvenli yolları keşfet
+                                                for (int i = 0; i < 4; i++) {
+                                                    int nextR = currR + dRow[i];
+                                                    int nextC = currC + dCol[i];
+
+                                                    // Harita sınırları içindeyse ve çarpmayacaksa
+                                                    if (nextR >= 0 && nextR < rows && nextC >= 0 && nextC < cols) {
+                                                        if (isValidMove(nextR, nextC) && !bfsVisited[nextR][nextC]) {
+                                                            bfsVisited[nextR][nextC] = true;
+                                                            parentR[nextR][nextC] = currR;
+                                                            parentC[nextR][nextC] = currC;
+                                                            queue.add(new Position(nextR, nextC));
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (found) {
+                                                // Hedef bulundu! ŞİMDİ ROTAYI GERİYE DOĞRU İZLEYİP İLK ADIMI BULUYORUZ
+                                                int stepR = targetR;
+                                                int stepC = targetC;
+
+                                                while (parentR[stepR][stepC] != r || parentC[stepR][stepC] != c) {
+                                                    int tempR = parentR[stepR][stepC];
+                                                    int tempC = parentC[stepR][stepC];
+                                                    stepR = tempR;
+                                                    stepC = tempC;
+                                                }
+
+                                                // Robotun kısır döngüye girmeden atması gereken İLK DOĞRU ADIM
+                                                if (stepR == r - 1) { robot.setDirection(model.Direction.UP); robot.move(new Position(stepR, stepC)); }
+                                                else if (stepR == r + 1) { robot.setDirection(model.Direction.DOWN); robot.move(new Position(stepR, stepC)); }
+                                                else if (stepC == c - 1) { robot.setDirection(model.Direction.LEFT); robot.move(new Position(stepR, stepC)); }
+                                                else if (stepC == c + 1) { robot.setDirection(model.Direction.RIGHT); robot.move(new Position(stepR, stepC)); }
+
+                                            } else {
+                                                // Haritada gerçekten gidecek HİÇBİR YER kalmadıysa
+                                                // (Simülasyon üstteki kapanış koduyla kendini kapatacak)
+                                                if (validFront) robot.move(new Position(frontR, frontC));
+                                                else if (validRight) { robot.setDirection(rightDir); robot.move(new Position(rightR, rightC)); }
+                                                else if (validLeft) { robot.setDirection(leftDir); robot.move(new Position(leftR, leftC)); }
+                                                else robot.setDirection(leftDir.getLeftDirection());
                                             }
                                         }
                                     }
-
                                     // ==========================================
                                     // DUVAR TAKİP ALGORİTMASI (İstasyona Dönüp Duran Versiyon)
                                     // ==========================================
