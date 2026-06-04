@@ -30,4 +30,24 @@ public class Position
     {
         this.col = col;
     }
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(this == obj)
+            return true;
+
+        if(obj == null || getClass() != obj.getClass())
+            return false;
+
+        Position other = (Position) obj;
+
+        return row == other.row &&
+                col == other.col;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return 31 * row + col;
+    }
 }
