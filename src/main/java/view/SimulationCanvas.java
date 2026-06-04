@@ -164,7 +164,7 @@ public class SimulationCanvas extends Canvas
 
             double angle = 0;
 
-            // Kızların çizimi varsayılan olarak YUKARI bakıyor. Doğru açılar:
+
             if (robot.getDirection() == model.Direction.RIGHT) angle = 90;
             else if (robot.getDirection() == model.Direction.DOWN) angle = 180;
             else if (robot.getDirection() == model.Direction.LEFT) angle = 270;

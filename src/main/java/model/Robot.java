@@ -63,7 +63,7 @@ public class Robot {
      * Robotu yeni konuma taşır ve her adımda standart batarya tüketir.
      */
     public void move(Position nextPosition) {
-        // x yerine col, y yerine row kullanıyoruz
+
         if (nextPosition.getCol() > this.position.getCol()) this.direction = Direction.RIGHT;
         else if (nextPosition.getCol() < this.position.getCol()) this.direction = Direction.LEFT;
         else if (nextPosition.getRow() > this.position.getRow()) this.direction = Direction.DOWN;
