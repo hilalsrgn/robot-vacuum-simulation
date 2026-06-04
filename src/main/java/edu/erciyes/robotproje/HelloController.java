@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
+
 public class HelloController
 {
 
@@ -674,9 +675,73 @@ public class HelloController
                                         }
                                     }
 
-                                    // RASTGELE MODU (Senin stratejin doğrultusunda pas geçildi)
-                                    else if (algoName.equals("Rastgele")) {
-                                        System.out.println("Rastgele modu mobilyalardan sonra kodlanacak.");
+                                    // RASTGELE MODU
+                                    else if (algoName.equals("Rastgele"))
+                                    {
+                                        List<Position> availableMoves =
+                                                new ArrayList<>();
+
+                                        List<Position> unvisitedMoves =
+                                                new ArrayList<>();
+
+                                        int row = currentPos.getRow();
+                                        int col = currentPos.getCol();
+
+                                        Position[] neighbors =
+                                                {
+                                                        new Position(row - 1, col), // Yukarı
+                                                        new Position(row + 1, col), // Aşağı
+                                                        new Position(row, col - 1), // Sol
+                                                        new Position(row, col + 1)  // Sağ
+                                                };
+
+                                        for(Position p : neighbors)
+                                        {
+                                            if(isValidMove(
+                                                    p.getRow(),
+                                                    p.getCol()))
+                                            {
+                                                availableMoves.add(p);
+
+                                                if(!visitedCells[p.getRow()][p.getCol()])
+                                                {
+                                                    unvisitedMoves.add(p);
+                                                }
+                                            }
+                                        }
+
+                                        Position nextMove = null;
+
+                                        // Önce gidilmemiş yerlere öncelik ver
+                                        if(!unvisitedMoves.isEmpty())
+                                        {
+                                            nextMove =
+                                                    unvisitedMoves.get(
+                                                            random.nextInt(
+                                                                    unvisitedMoves.size()
+                                                            )
+                                                    );
+                                        }
+                                        // Hepsi gezildiyse normal rastgele devam et
+                                        else if(!availableMoves.isEmpty())
+                                        {
+                                            nextMove =
+                                                    availableMoves.get(
+                                                            random.nextInt(
+                                                                    availableMoves.size()
+                                                            )
+                                                    );
+                                        }
+
+                                        if(nextMove != null)
+                                        {
+                                            robot.move(nextMove);
+
+                                            visitedCells
+                                                    [nextMove.getRow()]
+                                                    [nextMove.getCol()]
+                                                    = true;
+                                        }
                                     }
                                     // ========================================================
                                     // MERKEZİ PANEL GÜNCELLEME KODU (ALAN VE TOZ HESABI)
