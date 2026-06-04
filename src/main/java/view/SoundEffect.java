@@ -28,7 +28,7 @@ public class SoundEffect {
                 System.out.println("Hata: Ses dosyası bulunamadı! Yolu kontrol et.");
             }
 
-            // Kızlar ileride yeni ses eklemek isterse tam buraya yeni URL ve oynatıcıları ekleyebilirler.
+            //  ileride yeni ses eklemek isterse tam buraya yeni URL ve oynatıcıları ekleyebilirler.
 
         } catch (Exception e) {
             System.out.println("Ses yüklenirken bir hata oluştu: " + e.getMessage());

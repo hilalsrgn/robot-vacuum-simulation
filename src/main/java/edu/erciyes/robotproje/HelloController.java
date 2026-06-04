@@ -645,52 +645,68 @@ public class HelloController
                                     // DUVAR TAKİP ALGORİTMASI (İstasyona Dönüp Duran Versiyon)
                                     // ==========================================
                                     else if (algoName.equals("Duvar Takip")) {
-                                        int currentRow = currentPos.getRow();
-                                        int currentCol = currentPos.getCol();
+                                        int r = currentPos.getRow();
+                                        int c = currentPos.getCol();
+                                        model.Direction dir = robot.getDirection();
 
-                                        int nextRow = currentRow;
-                                        int nextCol = currentCol;
-
-                                        // 1. Mevcut yöne göre bir sonraki adımı hesapla
-                                        if (robot.getDirection() == model.Direction.RIGHT) nextCol++;
-                                        else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
-                                        else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
-                                        else if (robot.getDirection() == model.Direction.UP) nextRow--;
-
-                                        // Odanın başlangıç noktasını (Şarj İstasyonunu) otomatik bul
-                                        int startRow = room.getRows() - 1; // 13. satır
-                                        int startCol = 0;                  // 0. sütun
-
-                                        // İSTASYON KONTROLÜ: Bir sonraki adım istasyonsa temizliği bitir!
-                                        if (nextRow == startRow && nextCol == startCol) {
-                                            robot.move(new Position(startRow, startCol)); // İstasyona tam gir
-                                            robot.setDirection(model.Direction.RIGHT);    // Yüzünü odaya dönerek park et
-
-                                            System.out.println("Görev tamamlandı! Robot istasyona döndü ve şarja geçiyor.");
-                                            simulationTimer.stop(); // Motoru kapat
-                                        } else {
-                                            // 2. Duvara çarptı mı kontrolü
-                                            boolean hitWall =
-                                                    !isValidMove(nextRow, nextCol);
-
-                                            if (!hitWall) {
-                                                // Önü boşsa hiç bozmadan dümdüz ilerle
-                                                robot.move(new Position(nextRow, nextCol));
-                                                visitedCells[nextRow][nextCol] = true;
-                                            } else {
-                                                // Köşeye gelince Saat Yönünde (sağdan yukarı, yukarıdan sola) dön!
-                                                if (robot.getDirection() == model.Direction.RIGHT)
-                                                    robot.setDirection(model.Direction.UP);
-                                                else if (robot.getDirection() == model.Direction.UP)
-                                                    robot.setDirection(model.Direction.LEFT);
-                                                else if (robot.getDirection() == model.Direction.LEFT)
-                                                    robot.setDirection(model.Direction.DOWN);
-                                                else if (robot.getDirection() == model.Direction.DOWN)
-                                                    robot.setDirection(model.Direction.RIGHT);
+                                        // 1. İstasyona Dönüş Kontrolü (Hemen durmaması için temizlenen alan sayısına bakıyoruz)
+                                        int startRow = room.getRows() - 1;
+                                        int startCol = 0;
+                                        int cleanCount = 0;
+                                        for (int i = 0; i < visitedCells.length; i++) {
+                                            for (int j = 0; j < visitedCells[0].length; j++) {
+                                                if (visitedCells[i][j]) cleanCount++;
                                             }
                                         }
-                                    }
 
+                                        // Eğer istasyondaysa ve odada dolaşmışsa (örneğin 10 adımdan fazla atmışsa), tur bitmiştir!
+                                        if (r == startRow && c == startCol && cleanCount > 10) {
+                                            robot.setDirection(model.Direction.RIGHT);
+                                            canvas.draw();
+                                            System.out.println("Duvar takip bitti, robot şarja geçiyor.");
+                                            SoundEffect.supurgeSesiDurdur();
+                                            simulationTimer.stop();
+                                            return; // Metodu bitir
+                                        }
+
+                                        // 2. Yön Koordinatlarını Hesapla
+                                        model.Direction rightDir = dir.getRightDirection();
+                                        int rightR = r, rightC = c;
+                                        if (rightDir == model.Direction.RIGHT) rightC++; else if (rightDir == model.Direction.LEFT) rightC--; else if (rightDir == model.Direction.UP) rightR--; else rightR++;
+
+                                        model.Direction frontDir = dir;
+                                        int frontR = r, frontC = c;
+                                        if (frontDir == model.Direction.RIGHT) frontC++; else if (frontDir == model.Direction.LEFT) frontC--; else if (frontDir == model.Direction.UP) frontR--; else frontR++;
+
+                                        model.Direction leftDir = dir.getLeftDirection();
+                                        int leftR = r, leftC = c;
+                                        if (leftDir == model.Direction.RIGHT) leftC++; else if (leftDir == model.Direction.LEFT) leftC--; else if (leftDir == model.Direction.UP) leftR--; else leftR++;
+
+                                        // 3. Sadece Engel/Duvar Kontrolü (visitedCells kullanmıyoruz çünkü robot kendi izinden geçebilmeli)
+                                        boolean canGoRight = isValidMove(rightR, rightC);
+                                        boolean canGoFront = isValidMove(frontR, frontC);
+                                        boolean canGoLeft = isValidMove(leftR, leftC);
+
+                                        // 4. SAF SAĞ EL KURALI (Duvarı asla bırakma)
+                                        if (canGoRight) {
+                                            // Sağ taraf boşaldığı an sağa dönüp o boşluğa gir (Pufun arkasına veya odanın köşesine kıvrılmak için)
+                                            robot.setDirection(rightDir);
+                                            robot.move(new Position(rightR, rightC));
+                                            visitedCells[rightR][rightC] = true;
+                                        } else if (canGoFront) {
+                                            // Sağda duvar/engel varsa, ona sürtünerek dümdüz git
+                                            robot.move(new Position(frontR, frontC));
+                                            visitedCells[frontR][frontC] = true;
+                                        } else if (canGoLeft) {
+                                            // Sağ ve ön kapalıysa (örneğin odanın iç köşesine geldiyse) sola dön
+                                            robot.setDirection(leftDir);
+                                            robot.move(new Position(leftR, leftC));
+                                            visitedCells[leftR][leftC] = true;
+                                        } else {
+                                            // Üç taraf da tıkalıysa geriye dön
+                                            robot.setDirection(leftDir.getLeftDirection());
+                                        }
+                                    }
                                     // RASTGELE MODU
                                     else if (algoName.equals("Rastgele"))
                                     {
