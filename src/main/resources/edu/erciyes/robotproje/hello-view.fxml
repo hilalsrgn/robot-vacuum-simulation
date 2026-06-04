@@ -28,7 +28,19 @@
       <RadioButton fx:id="stainRadioButton" style="-fx-text-fill:white;" text="Leke" />
 
       <Button fx:id="addObstacleButton" maxWidth="9999" prefHeight="28" style="-fx-background-color:#27AE60;                            -fx-text-fill:white;                            -fx-font-size:14;" text="Mobilya Ekle" />
+        <Label style="-fx-text-fill:white;
+              -fx-font-size:14;"
+               text="Mobilya Türü" />
 
+        <RadioButton fx:id="armchairRadioButton"
+                     style="-fx-text-fill:white;"
+                     text="Puf" />
+
+        <RadioButton fx:id="plantRadioButton"
+                     style="-fx-text-fill:white;"
+                     text="Bitki" />
+
+        <Separator />
       <Separator />
 
       <Label style="-fx-text-fill:white;                           -fx-font-size:15;                           -fx-font-weight:bold;" text="⚡ Robot Hızı" />

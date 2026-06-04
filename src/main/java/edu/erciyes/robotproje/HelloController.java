@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
 
+
 public class HelloController
 {
 
@@ -84,6 +85,12 @@ public class HelloController
 
     @FXML
     private Label dustLabel;
+
+    @FXML
+    private RadioButton armchairRadioButton;
+
+    @FXML
+    private RadioButton plantRadioButton;
 
     private int initialDirtCount = 0;
     private boolean[][] initiallyDirty;
@@ -162,6 +169,20 @@ public class HelloController
                         0,0,
 
                         "/images/plant.png"
+                )
+        );
+
+        room.getObstacles().add(
+                new Obstacle(
+                        new Position(4,17),
+
+                        3,6,      // görsel boyutu
+
+                        2,5,      // çarpışma alanı
+
+                        0,0,      // offset
+
+                        "/images/shelf.png"
                 )
         );
 
@@ -276,6 +297,19 @@ public class HelloController
         stainRadioButton.setToggleGroup(dirtTypeGroup);
         dustRadioButton.setSelected(true); // Varsayılan toz seçili gelsin
 
+        // MOBİLYA TÜRLERİ İÇİN
+        ToggleGroup furnitureGroup = new ToggleGroup();
+
+        armchairRadioButton.setToggleGroup(
+                furnitureGroup
+        );
+
+        plantRadioButton.setToggleGroup(
+                furnitureGroup
+        );
+
+        armchairRadioButton.setSelected(true);
+
         // "Kir Ekle" butonuna basıldığında
         addDirtButton.setOnAction(e -> {
             currentInteractionMode = "DIRT";
@@ -353,6 +387,66 @@ public class HelloController
                     canvas.draw();
                 }
             }
+
+            else if(currentInteractionMode.equals("OBSTACLE"))
+            {
+                double cellWidth =
+                        simulationPane.getWidth() / room.getCols();
+
+                double cellHeight =
+                        simulationPane.getHeight() / room.getRows();
+
+                int col =
+                        (int)(mouseX / cellWidth);
+
+                int row =
+                        (int)(mouseY / cellHeight);
+
+                Obstacle obstacle;
+
+                if(armchairRadioButton.isSelected())
+                {
+                    obstacle =
+                            new Obstacle(
+                                    new Position(row,col),
+
+                                    2,2,
+
+                                    2,2,
+
+                                    0,0,
+
+                                    "/images/puf.png"
+                            );
+                }
+                else
+                {
+                    obstacle =
+                            new Obstacle(
+                                    new Position(row,col),
+
+                                    1,1,
+
+                                    1,1,
+
+                                    0,0,
+
+                                    "/images/plant.png"
+                            );
+                }
+
+                room.getObstacles().add(obstacle);
+
+                markObstacleCells(obstacle);
+
+                canvas.draw();
+
+                System.out.println(
+                        "Yeni mobilya eklendi: "
+                                + row + "," + col
+                );
+            }
+
         });
         startButton.setOnAction(e -> {
 
@@ -865,6 +959,36 @@ public class HelloController
             return false;
 
         return true;
+    }
+
+    private void markObstacleCells(Obstacle obstacle)
+    {
+        int startRow =
+                obstacle.getPosition().getRow()
+                        + obstacle.getCollisionRowOffset();
+
+        int startCol =
+                obstacle.getPosition().getCol()
+                        + obstacle.getCollisionColOffset();
+
+        for(int r = startRow;
+            r < startRow + obstacle.getCollisionHeight();
+            r++)
+        {
+            for(int c = startCol;
+                c < startCol + obstacle.getCollisionWidth();
+                c++)
+            {
+                if(r >= 0 &&
+                        r < room.getRows() &&
+                        c >= 0 &&
+                        c < room.getCols())
+                {
+                    room.getCell(r,c)
+                            .setObstacle(true);
+                }
+            }
+        }
     }
 }
 
