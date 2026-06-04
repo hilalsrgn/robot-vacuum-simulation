@@ -14,7 +14,7 @@ import controller.PathFinder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
-
+import controller.BatteryManager;
 
 
 public class HelloController
@@ -28,6 +28,9 @@ public class HelloController
     private boolean returningToStation = false;
     private Random random = new Random();
     private List<Obstacle> userAddedObstacles = new ArrayList<>();
+
+    private BatteryManager batteryManager =
+            new BatteryManager();
 
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
     private AnimationTimer simulationTimer;
@@ -526,7 +529,9 @@ public class HelloController
                                     {
                                         returningToStation = false;
 
-                                        room.getRobot().chargeBattery();
+                                        batteryManager.chargeBattery(
+                                                room.getRobot()
+                                        );
 
                                         System.out.println(
                                                 "Robot istasyona ulaştı ve şarj oldu."
