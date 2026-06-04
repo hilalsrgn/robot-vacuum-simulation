@@ -27,6 +27,7 @@ public class HelloController
     private int returnPathIndex = 0;
     private boolean returningToStation = false;
     private Random random = new Random();
+    private List<Obstacle> userAddedObstacles = new ArrayList<>();
 
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
     private AnimationTimer simulationTimer;
@@ -437,6 +438,8 @@ public class HelloController
                 }
 
                 room.getObstacles().add(obstacle);
+
+                userAddedObstacles.add(obstacle);
 
                 markObstacleCells(obstacle);
 
@@ -930,6 +933,26 @@ public class HelloController
         simulationPane.getChildren().removeIf(node ->
                 node instanceof Circle
         );
+
+        for(Obstacle obstacle : userAddedObstacles)
+        {
+            room.getObstacles().remove(obstacle);
+        }
+        for(int r = 0; r < room.getRows(); r++)
+        {
+            for(int c = 0; c < room.getCols(); c++)
+            {
+                room.getCell(r,c)
+                        .setObstacle(false);
+            }
+        }
+
+        for(Obstacle obstacle : room.getObstacles())
+        {
+            markObstacleCells(obstacle);
+        }
+
+        userAddedObstacles.clear();
 
         for(int row = 0; row < room.getRows(); row++)
         {
