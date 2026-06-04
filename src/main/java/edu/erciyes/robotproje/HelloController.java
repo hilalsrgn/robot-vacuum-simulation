@@ -115,9 +115,9 @@ public class HelloController
 
                         4,5,
 
-                        3,2,
+                        4,3,
 
-                        1,1,
+                        1,0,
 
                         "/images/sofa.png"
                 )
