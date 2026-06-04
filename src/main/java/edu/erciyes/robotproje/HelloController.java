@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
 import controller.BatteryManager;
+import view.SoundEffect;
 
 
 public class HelloController
@@ -458,6 +459,7 @@ public class HelloController
         startButton.setOnAction(e -> {
 
             isRunning = true;
+            SoundEffect.supurgeSesiBaslat();
             // --- BAŞLANGIÇTAKİ KİRLERİ HAFIZAYA ALMA KODU ---
             initialDirtCount = 0;
             initiallyDirty = new boolean[room.getRows()][room.getCols()];
@@ -927,6 +929,7 @@ public class HelloController
             System.out.println("Simülasyon duraklatıldı!");
 
             isRunning = false;
+            SoundEffect.supurgeSesiDurdur();
         }
     }
 
@@ -934,6 +937,7 @@ public class HelloController
     public void onSifirlaClick()
     {
         isRunning = false;
+        SoundEffect.supurgeSesiDurdur();
 
         simulationPane.getChildren().removeIf(node ->
                 node instanceof Circle
