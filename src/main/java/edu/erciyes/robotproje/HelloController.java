@@ -10,8 +10,10 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.animation.AnimationTimer;
-
-
+import controller.PathFinder;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class HelloController
 {
@@ -19,6 +21,10 @@ public class HelloController
     // Bunu en tepeye, diğer @FXML tanımlarının yanına ekle
     private Position startPosition = new Position(13, 0);
     private boolean[][] visitedCells;
+    private List<Position> returnPath;
+    private int returnPathIndex = 0;
+    private boolean returningToStation = false;
+    private Random random = new Random();
 
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
     private AnimationTimer simulationTimer;
@@ -200,11 +206,30 @@ public class HelloController
         // Robot şarj istasyonundan çıkarken yüzü sağa (odanın içine) dönük olsun!
         robot.setDirection(model.Direction.RIGHT);
         room.setRobot(robot);
+        PathFinder pathFinder =
+                new PathFinder();
 
+        List<Position> path =
+                pathFinder.findShortestPath(
+                        room,
+                        new Position(13,0),
+                        new Position(0,19)
+                );
+
+        System.out.println("Yol bulundu:");
+        for(Position p : path)
+        {
+            System.out.println(
+                    p.getRow() + "," +
+                            p.getCol()
+            );
+        }
         room.setRobot(robot);
 
-         canvas =
+        canvas =
                 new SimulationCanvas(room);
+
+        canvas.setMouseTransparent(true);
 
         canvas.widthProperty().bind(
                 simulationPane.widthProperty());
@@ -263,9 +288,15 @@ public class HelloController
             currentInteractionMode = "OBSTACLE";
             System.out.println("Mod Değişti: Haritaya mobilya/engel ekleyebilirsiniz.");
         });
+        simulationPane.setOnMousePressed(event ->
+        {
+            System.out.println("MOUSE BASILDI");
 
+            startReturnToStation();
+        });
         // SADECE KİR EKLEME VE GÖRSELLEŞTİRME KODU
         simulationPane.setOnMouseClicked(event -> {
+            System.out.println("TIKLAMA ALGILANDI");
 
             // Simülasyon çalışıyorsa kir eklemeyi engelle
             if (isRunning) {
@@ -363,6 +394,32 @@ public class HelloController
 
                             // Güvenlik kontrolü: Robot veya oda yoksa patlamasın
                             if (room != null && room.getRobot() != null) {
+                                if(returningToStation)
+                                {
+                                    if(returnPath != null &&
+                                            returnPathIndex < returnPath.size())
+                                    {
+                                        Position nextPos =
+                                                returnPath.get(returnPathIndex);
+
+                                        room.getRobot().move(nextPos);
+
+                                        returnPathIndex++;
+
+                                        canvas.draw();
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        returningToStation = false;
+
+                                        room.getRobot().chargeBattery();
+
+                                        System.out.println(
+                                                "Robot istasyona ulaştı ve şarj oldu."
+                                        );
+                                    }
+                                }
                                 Robot robot = room.getRobot();
                                 Position currentPos = robot.getPosition();
                                 // Eğer visitedCells null ise (yani Sıfırla'ya basılmışsa)
@@ -599,6 +656,15 @@ public class HelloController
                                     }
 
                                  // 4. Batarya Çubuğunu ve Yüzde Yazısını Güncelle
+                                    if(robot.isBatteryLow()
+                                            && !returningToStation)
+                                    {
+                                        System.out.println(
+                                                "Batarya düşük! İstasyona dönülüyor..."
+                                        );
+
+                                        startReturnToStation();
+                                    }
                                     if (batteryBar != null) {
                                         double guncelBatarya = room.getRobot().getBatteryLevel();
                                         batteryBar.setProgress(guncelBatarya / 100.0);
@@ -750,6 +816,24 @@ public class HelloController
             batteryPercentageLabel.setText("%100.0");
         }
 
+    }
+    private void startReturnToStation()
+    {
+        PathFinder pathFinder = new PathFinder();
+
+        returnPath = pathFinder.findShortestPath(
+                room,
+                room.getRobot().getPosition(),
+                new Position(13,0)
+        );
+
+        returnPathIndex = 1;
+        returningToStation = true;
+
+        System.out.println(
+                "İstasyona dönüş başlatıldı. Yol uzunluğu: "
+                        + returnPath.size()
+        );
     }
 
     private boolean isValidMove(int row, int col)
