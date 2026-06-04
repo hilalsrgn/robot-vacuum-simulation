@@ -76,6 +76,10 @@ public class SimulationCanvas extends Canvas
         {
             for(int col=0; col<room.getCols(); col++)
             {
+                gc.setStroke(Color.web("#B8A38D"));
+                gc.setLineWidth(1);
+                gc.setLineDashes(4);
+
                 gc.strokeRect(
                         col * cellWidth,
                         row * cellHeight,

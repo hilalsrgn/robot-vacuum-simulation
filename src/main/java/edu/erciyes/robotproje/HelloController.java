@@ -441,6 +441,15 @@ public class HelloController
                             );
                 }
 
+
+                if(!canPlaceObstacle(obstacle))
+                {
+                    System.out.println(
+                            "Buraya mobilya eklenemez!"
+                    );
+                    return;
+                }
+
                 room.getObstacles().add(obstacle);
 
                 userAddedObstacles.add(obstacle);
@@ -1087,5 +1096,43 @@ public class HelloController
             }
         }
     }
+
+    private boolean canPlaceObstacle(
+            Obstacle obstacle)
+    {
+        int startRow =
+                obstacle.getPosition().getRow()
+                        + obstacle.getCollisionRowOffset();
+
+        int startCol =
+                obstacle.getPosition().getCol()
+                        + obstacle.getCollisionColOffset();
+
+        for(int r = startRow;
+            r < startRow + obstacle.getCollisionHeight();
+            r++)
+        {
+            for(int c = startCol;
+                c < startCol + obstacle.getCollisionWidth();
+                c++)
+            {
+                if(r < 0 ||
+                        r >= room.getRows() ||
+                        c < 0 ||
+                        c >= room.getCols())
+                {
+                    return false;
+                }
+
+                if(room.getCell(r,c).isObstacle())
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 }
 
