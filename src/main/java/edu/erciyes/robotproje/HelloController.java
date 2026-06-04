@@ -33,6 +33,9 @@ public class HelloController
     private BatteryManager batteryManager =
             new BatteryManager();
 
+    private List<Position> dirtPath = null;
+    private int dirtPathIndex = 0;
+
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
     private AnimationTimer simulationTimer;
     private Room room; // Kızların odasına buradan erişeceğiz
@@ -184,9 +187,9 @@ public class HelloController
 
                         3,6,      // görsel boyutu
 
-                        2,5,      // çarpışma alanı
+                        1,4,      // çarpışma alanı
 
-                        0,0,      // offset
+                        1,1,      // offset
 
                         "/images/shelf.png"
                 )
@@ -332,7 +335,7 @@ public class HelloController
         {
             System.out.println("MOUSE BASILDI");
 
-            startReturnToStation();
+            //startReturnToStation();
         });
         // SADECE KİR EKLEME VE GÖRSELLEŞTİRME KODU
         simulationPane.setOnMouseClicked(event -> {
@@ -710,69 +713,92 @@ public class HelloController
                                     // RASTGELE MODU
                                     else if (algoName.equals("Rastgele"))
                                     {
-                                        List<Position> availableMoves =
-                                                new ArrayList<>();
+                                        PathFinder pathFinder = new PathFinder();
 
-                                        List<Position> unvisitedMoves =
-                                                new ArrayList<>();
-
-                                        int row = currentPos.getRow();
-                                        int col = currentPos.getCol();
-
-                                        Position[] neighbors =
-                                                {
-                                                        new Position(row - 1, col), // Yukarı
-                                                        new Position(row + 1, col), // Aşağı
-                                                        new Position(row, col - 1), // Sol
-                                                        new Position(row, col + 1)  // Sağ
-                                                };
-
-                                        for(Position p : neighbors)
+                                        // Eğer elimizde aktif bir hedef yoksa
+                                        if(dirtPath == null || dirtPathIndex >= dirtPath.size())
                                         {
-                                            if(isValidMove(
-                                                    p.getRow(),
-                                                    p.getCol()))
-                                            {
-                                                availableMoves.add(p);
+                                            Position nearestDirt =
+                                                    findNearestDirt(
+                                                            robot.getPosition()
+                                                    );
 
-                                                if(!visitedCells[p.getRow()][p.getCol()])
+                                            if(nearestDirt != null)
+                                            {
+                                                dirtPath =
+                                                        pathFinder.findShortestPath(
+                                                                room,
+                                                                robot.getPosition(),
+                                                                nearestDirt
+                                                        );
+
+                                                dirtPathIndex = 1;
+                                            }
+                                            else
+                                            {
+                                                List<Position> unvisitedTargets =
+                                                        new ArrayList<>();
+
+                                                for(int r = 0; r < room.getRows(); r++)
                                                 {
-                                                    unvisitedMoves.add(p);
+                                                    for(int c = 0; c < room.getCols(); c++)
+                                                    {
+                                                        if(!visitedCells[r][c]
+                                                                &&
+                                                                !room.getCell(r,c).isObstacle())
+                                                        {
+                                                            unvisitedTargets.add(
+                                                                    new Position(r,c)
+                                                            );
+                                                        }
+                                                    }
+                                                }
+
+                                                // Hâlâ gezilmemiş yer varsa
+                                                if(!unvisitedTargets.isEmpty())
+                                                {
+                                                    Position target =
+                                                            unvisitedTargets.get(
+                                                                    random.nextInt(
+                                                                            unvisitedTargets.size()
+                                                                    )
+                                                            );
+
+                                                    dirtPath =
+                                                            pathFinder.findShortestPath(
+                                                                    room,
+                                                                    robot.getPosition(),
+                                                                    target
+                                                            );
+
+                                                    dirtPathIndex = 1;
+                                                }
+                                                else
+                                                {
+                                                    // Gerçekten her yer bitti
+                                                    if(!returningToStation)
+                                                    {
+                                                        startReturnToStation();
+                                                    }
+                                                    return;
                                                 }
                                             }
                                         }
 
-                                        Position nextMove = null;
+                                        // Hedefe doğru ilerle
+                                        if(dirtPath != null &&
+                                                dirtPathIndex < dirtPath.size())
+                                        {
+                                            Position nextMove =
+                                                    dirtPath.get(dirtPathIndex);
 
-                                        // Önce gidilmemiş yerlere öncelik ver
-                                        if(!unvisitedMoves.isEmpty())
-                                        {
-                                            nextMove =
-                                                    unvisitedMoves.get(
-                                                            random.nextInt(
-                                                                    unvisitedMoves.size()
-                                                            )
-                                                    );
-                                        }
-                                        // Hepsi gezildiyse normal rastgele devam et
-                                        else if(!availableMoves.isEmpty())
-                                        {
-                                            nextMove =
-                                                    availableMoves.get(
-                                                            random.nextInt(
-                                                                    availableMoves.size()
-                                                            )
-                                                    );
-                                        }
-
-                                        if(nextMove != null)
-                                        {
                                             robot.move(nextMove);
 
-                                            visitedCells
-                                                    [nextMove.getRow()]
+                                            visitedCells[nextMove.getRow()]
                                                     [nextMove.getCol()]
                                                     = true;
+
+                                            dirtPathIndex++;
                                         }
                                     }
                                     // ========================================================
@@ -855,6 +881,9 @@ public class HelloController
                                         room.getRobot().cleanDirt(currentDirtType); // Kir zorluğuna göre şarj yer
                                         room.getCell(r, c).setDirt(null);
                                     }
+
+
+
 
                                     // --- TOZ YÜZDESİ KODUMUZ ---
                                     cleanedDirtCount = 0;
@@ -1144,6 +1173,35 @@ public class HelloController
         }
 
         return true;
+    }
+
+    private Position findNearestDirt(Position currentPos)
+    {
+        Position nearest = null;
+
+        int minDistance = Integer.MAX_VALUE;
+
+        for(int r = 0; r < room.getRows(); r++)
+        {
+            for(int c = 0; c < room.getCols(); c++)
+            {
+                if(room.getCell(r,c).getDirt() != null)
+                {
+                    int distance =
+                            Math.abs(r - currentPos.getRow())
+                                    +
+                                    Math.abs(c - currentPos.getCol());
+
+                    if(distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearest = new Position(r,c);
+                    }
+                }
+            }
+        }
+
+        return nearest;
     }
 
 }
