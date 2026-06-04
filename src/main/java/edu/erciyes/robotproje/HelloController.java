@@ -324,8 +324,23 @@ public class HelloController
             }
         });
         startButton.setOnAction(e -> {
+
+            isRunning = true;
+            // --- BAŞLANGIÇTAKİ KİRLERİ HAFIZAYA ALMA KODU ---
+            initialDirtCount = 0;
+            initiallyDirty = new boolean[room.getRows()][room.getCols()];
+            visitedCells = new boolean[room.getRows()][room.getCols()];
+            visitedCells[room.getRows() - 1][0] = true;
+
+            for (int r = 0; r < room.getRows(); r++) {
+                for (int c = 0; c < room.getCols(); c++) {
+                    if (room.getCell(r, c).getDirt() != null) {
+                        initiallyDirty[r][c] = true;
+                        initialDirtCount++;
+                    }
+                }
+            }
             if (simulationTimer == null) {
-                isRunning = true;
                 simulationTimer = new AnimationTimer() {
                     private long lastUpdate = 0;
 
@@ -337,7 +352,7 @@ public class HelloController
                             lastSecondUpdate = now;
                         }
 
-                    // Tam 1 saniye (1.000.000.000 nanosaniye) geçtiyse sayacı artır
+                        // Tam 1 saniye (1.000.000.000 nanosaniye) geçtiyse sayacı artır
                         if (now - lastSecondUpdate >= 1_000_000_000L) {
                             elapsedSeconds++;
                             lastSecondUpdate = now;
@@ -384,7 +399,7 @@ public class HelloController
                                     // ==========================================
                                     // SPİRAL ALGORİTMASI (Anında Dönen ve Eve Dönüşlü)
                                     // ==========================================
-                                     if (algoName.equals("Spiral")) {
+                                    if (algoName.equals("Spiral")) {
                                         int currentRow = currentPos.getRow();
                                         int currentCol = currentPos.getCol();
 
@@ -397,8 +412,8 @@ public class HelloController
                                         else if (robot.getDirection() == model.Direction.LEFT) nextCol--;
                                         else if (robot.getDirection() == model.Direction.DOWN) nextRow++;
 
-                                         boolean hitWall =
-                                                 !isValidMove(nextRow,nextCol);
+                                        boolean hitWall =
+                                                !isValidMove(nextRow, nextCol);
                                         boolean alreadyCleaned = !hitWall && visitedCells[nextRow][nextCol];
 
                                         if (!hitWall && !alreadyCleaned) {
@@ -408,10 +423,14 @@ public class HelloController
                                         } else {
                                             // 2. ÖNÜ TIKALIYSA: Bir sonraki dönüş yönünü ANINDA belirle (Bekleme/Fır dönme bitti!)
                                             model.Direction nextDir = robot.getDirection();
-                                            if (robot.getDirection() == model.Direction.RIGHT) nextDir = model.Direction.UP;
-                                            else if (robot.getDirection() == model.Direction.UP) nextDir = model.Direction.LEFT;
-                                            else if (robot.getDirection() == model.Direction.LEFT) nextDir = model.Direction.DOWN;
-                                            else if (robot.getDirection() == model.Direction.DOWN) nextDir = model.Direction.RIGHT;
+                                            if (robot.getDirection() == model.Direction.RIGHT)
+                                                nextDir = model.Direction.UP;
+                                            else if (robot.getDirection() == model.Direction.UP)
+                                                nextDir = model.Direction.LEFT;
+                                            else if (robot.getDirection() == model.Direction.LEFT)
+                                                nextDir = model.Direction.DOWN;
+                                            else if (robot.getDirection() == model.Direction.DOWN)
+                                                nextDir = model.Direction.RIGHT;
 
                                             int turnRow = currentRow;
                                             int turnCol = currentCol;
@@ -421,7 +440,7 @@ public class HelloController
                                             else if (nextDir == model.Direction.DOWN) turnRow++;
 
                                             boolean turnHitWall =
-                                                    !isValidMove(turnRow,turnCol);
+                                                    !isValidMove(turnRow, turnCol);
                                             boolean turnAlreadyCleaned = !turnHitWall && visitedCells[turnRow][turnCol];
 
                                             if (!turnHitWall && !turnAlreadyCleaned) {
@@ -481,11 +500,10 @@ public class HelloController
 
                                             System.out.println("Görev tamamlandı! Robot istasyona döndü ve şarja geçiyor.");
                                             simulationTimer.stop(); // Motoru kapat
-                                        }
-                                        else {
+                                        } else {
                                             // 2. Duvara çarptı mı kontrolü
                                             boolean hitWall =
-                                                    !isValidMove(nextRow,nextCol);
+                                                    !isValidMove(nextRow, nextCol);
 
                                             if (!hitWall) {
                                                 // Önü boşsa hiç bozmadan dümdüz ilerle
@@ -493,10 +511,14 @@ public class HelloController
                                                 visitedCells[nextRow][nextCol] = true;
                                             } else {
                                                 // Köşeye gelince Saat Yönünde (sağdan yukarı, yukarıdan sola) dön!
-                                                if (robot.getDirection() == model.Direction.RIGHT) robot.setDirection(model.Direction.UP);
-                                                else if (robot.getDirection() == model.Direction.UP) robot.setDirection(model.Direction.LEFT);
-                                                else if (robot.getDirection() == model.Direction.LEFT) robot.setDirection(model.Direction.DOWN);
-                                                else if (robot.getDirection() == model.Direction.DOWN) robot.setDirection(model.Direction.RIGHT);
+                                                if (robot.getDirection() == model.Direction.RIGHT)
+                                                    robot.setDirection(model.Direction.UP);
+                                                else if (robot.getDirection() == model.Direction.UP)
+                                                    robot.setDirection(model.Direction.LEFT);
+                                                else if (robot.getDirection() == model.Direction.LEFT)
+                                                    robot.setDirection(model.Direction.DOWN);
+                                                else if (robot.getDirection() == model.Direction.DOWN)
+                                                    robot.setDirection(model.Direction.RIGHT);
                                             }
                                         }
                                     }
@@ -506,8 +528,8 @@ public class HelloController
                                         System.out.println("Rastgele modu mobilyalardan sonra kodlanacak.");
                                     }
                                     // ========================================================
-                                // MERKEZİ PANEL GÜNCELLEME KODU (ALAN VE TOZ HESABI)
-                                // ========================================================
+                                    // MERKEZİ PANEL GÜNCELLEME KODU (ALAN VE TOZ HESABI)
+                                    // ========================================================
                                     int totalCells = room.getRows() * room.getCols();
                                     int cleanedCells = 0;
                                     int cleanedDirtCount = 0; // Temizlenen kirleri sayacağımız sayaç
@@ -533,11 +555,11 @@ public class HelloController
                                     int cleanedPercent = (int) Math.round(((double) cleanedCells / totalCells) * 100);
                                     int remainingPercent = (int) Math.round(((double) remainingCells / totalCells) * 100);
 
-                                // M² Etiketlerini Güncelle
+                                    // M² Etiketlerini Güncelle
                                     cleanedAreaLabel.setText(cleanedCells + " m² (" + cleanedPercent + "%)");
                                     remainingAreaLabel.setText(remainingCells + " m² (" + remainingPercent + "%)");
 
-                                // --- YENİ: TOZ YÜZDESİNİ HESAPLA VE EKRANA BAS ---
+                                    // --- YENİ: TOZ YÜZDESİNİ HESAPLA VE EKRANA BAS ---
                                     int dirtPercent = 0;
                                     if (initialDirtCount > 0) {
                                         dirtPercent = (int) Math.round(((double) cleanedDirtCount / initialDirtCount) * 100);
@@ -547,28 +569,36 @@ public class HelloController
                                     }
 
                                     // ========================================================
-                                // ROBOT DURUMU VE GERÇEKÇİ BATARYA GÜNCELLEMESİ
-                                // ========================================================
+                                    // ROBOT DURUMU VE GERÇEKÇİ BATARYA GÜNCELLEMESİ
+                                    // ========================================================
                                     Position pos = room.getRobot().getPosition();
 
-                                // 1. Konumu Ekrana Yazdır
+                                    // 1. Konumu Ekrana Yazdır
                                     if (positionLabel != null) {
                                         positionLabel.setText("Konum: (" + pos.getRow() + "," + pos.getCol() + ")");
                                     }
 
-                                 // 2. Yönü Ekrana Yazdır
+                                    // 2. Yönü Ekrana Yazdır
                                     if (directionLabel != null) {
                                         String yonStr = "Bilinmiyor";
                                         switch (room.getRobot().getDirection()) {
-                                            case UP: yonStr = "Yukarı"; break;
-                                            case DOWN: yonStr = "Aşağı"; break;
-                                            case LEFT: yonStr = "Sol"; break;
-                                            case RIGHT: yonStr = "Sağ"; break;
+                                            case UP:
+                                                yonStr = "Yukarı";
+                                                break;
+                                            case DOWN:
+                                                yonStr = "Aşağı";
+                                                break;
+                                            case LEFT:
+                                                yonStr = "Sol";
+                                                break;
+                                            case RIGHT:
+                                                yonStr = "Sağ";
+                                                break;
                                         }
                                         directionLabel.setText("Yön: " + yonStr);
                                     }
 
-                                // 3. Batarya ve Gerçekçi Temizlik Mantığı
+                                    // 3. Batarya ve Gerçekçi Temizlik Mantığı
                                     int r = pos.getRow();
                                     int c = pos.getCol();
 
@@ -578,7 +608,7 @@ public class HelloController
                                         room.getCell(r, c).setDirt(null);
                                     }
 
-                                    // --- KAYBOLAN TOZ YÜZDESİ KODUMUZ ---
+                                    // --- TOZ YÜZDESİ KODUMUZ ---
                                     cleanedDirtCount = 0;
                                     if (visitedCells != null && initiallyDirty != null) {
                                         for (int satir = 0; satir < room.getRows(); satir++) {
@@ -598,7 +628,7 @@ public class HelloController
                                         dustLabel.setText(cleanedDirtCount + " / " + initialDirtCount + " (" + dirtPercent + "%)");
                                     }
 
-                                 // 4. Batarya Çubuğunu ve Yüzde Yazısını Güncelle
+                                    // 4. Batarya Çubuğunu ve Yüzde Yazısını Güncelle
                                     if (batteryBar != null) {
                                         double guncelBatarya = room.getRobot().getBatteryLevel();
                                         batteryBar.setProgress(guncelBatarya / 100.0);
@@ -608,7 +638,7 @@ public class HelloController
                                             batteryPercentageLabel.setText("%" + String.format("%.1f", guncelBatarya));
                                         }
                                     }
-                                // ========================================================
+                                    // ========================================================
 
 
                                 }
@@ -621,8 +651,8 @@ public class HelloController
                                 // Robotun yeni piksel koordinatlarını hesaplıyoruz
                                 double cellWidth = simulationPane.getWidth() / room.getCols();
                                 double cellHeight = simulationPane.getHeight() / room.getRows();
-                                double robotVisualX = robot.getPosition().getCol() * cellWidth + (cellWidth/2);
-                                double robotVisualY = robot.getPosition().getRow() * cellHeight + (cellHeight/2);
+                                double robotVisualX = robot.getPosition().getCol() * cellWidth + (cellWidth / 2);
+                                double robotVisualY = robot.getPosition().getRow() * cellHeight + (cellHeight / 2);
 
                                 // Üzerine bastığı kiri ekrandan uçur
                                 Cell currentCell =
@@ -631,8 +661,7 @@ public class HelloController
                                                 robot.getPosition().getCol()
                                         );
 
-                                if(currentCell.isDirty())
-                                {
+                                if (currentCell.isDirty()) {
                                     currentCell.setDirt(null);
                                 }
                             }
@@ -644,26 +673,12 @@ public class HelloController
                 simulationTimer.start();
                 System.out.println("MOTOR ÇALIŞTI! Robot hareket ediyor...");
 
-                isRunning = true;
 
-            // --- BAŞLANGIÇTAKİ KİRLERİ HAFIZAYA ALMA KODU ---
-                initialDirtCount = 0;
-                initiallyDirty = new boolean[room.getRows()][room.getCols()];
 
-                for (int r = 0; r < room.getRows(); r++) {
-                    for (int c = 0; c < room.getCols(); c++) {
-                        if (room.getCell(r, c).getDirt() != null) {
-                            initiallyDirty[r][c] = true;
-                            initialDirtCount++;
-                        }
-                    }
-                }
 
             }
-            // İf bloğunun dışına çıktık, artık güvenle başlatabiliriz:
             simulationTimer.start();
             System.out.println("Simülasyon başlatıldı / devam ediyor!");
-
         });
 
     }
