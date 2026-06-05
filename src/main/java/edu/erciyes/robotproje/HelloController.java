@@ -524,10 +524,10 @@ public class HelloController
                             // Güvenlik kontrolü: Robot veya oda yoksa patlamasın
                             if (room != null && room.getRobot() != null) {
                                 if (returningToStation) {
-                                    if (returnPath != null &&
-                                            returnPathIndex < returnPath.size()) {
-                                        Position nextPos =
-                                                returnPath.get(returnPathIndex);
+                                    if (returnPath != null && returnPathIndex < returnPath.size()) {
+
+                                        Position nextPos = returnPath.get(returnPathIndex);
+                                        System.out.println("Robotun sıradaki adımı: " + nextPos.getRow() + "," + nextPos.getCol());
 
                                         room.getRobot().move(nextPos);
 
@@ -536,15 +536,23 @@ public class HelloController
                                         canvas.draw();
                                         return;
                                     } else {
+
+                                        // 1. ZORLA YUVAYA SOK VE EKRANI GÜNCELLE
+                                        room.getRobot().setPosition(new Position(13, 0));
+                                        canvas.draw();
+
                                         returningToStation = false;
 
-                                        batteryManager.chargeBattery(
-                                                room.getRobot()
-                                        );
+                                        batteryManager.chargeBattery(room.getRobot());
 
-                                        System.out.println(
-                                                "Robot istasyona ulaştı ve şarj oldu."
-                                        );
+                                        System.out.println("Robot istasyona ulaştı ve şarj oldu.");
+
+                                        isRunning = false;
+
+                                        // İŞTE FREN BURADA YAPILIYOR!
+                                        if (simulationTimer != null) {
+                                            simulationTimer.stop();
+                                        }
                                     }
                                 }
                                 Robot robot = room.getRobot();
@@ -1273,11 +1281,13 @@ public class HelloController
         startReturnToStation();
 
         if(simulationTimer != null)
+
         {
             simulationTimer.start();
         }
 
         isRunning = true;
+
 
         System.out.println(
                 "İstasyona dön butonuna basıldı."
