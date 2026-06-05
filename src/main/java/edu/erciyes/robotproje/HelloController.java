@@ -525,34 +525,34 @@ public class HelloController
                             if (room != null && room.getRobot() != null) {
                                 if (returningToStation) {
                                     if (returnPath != null && returnPathIndex < returnPath.size()) {
-
                                         Position nextPos = returnPath.get(returnPathIndex);
                                         System.out.println("Robotun sıradaki adımı: " + nextPos.getRow() + "," + nextPos.getCol());
 
+
                                         room.getRobot().move(nextPos);
-
                                         returnPathIndex++;
-
-                                        canvas.draw();
-                                        return;
-                                    } else {
-
-                                        // 1. ZORLA YUVAYA SOK VE EKRANI GÜNCELLE
-                                        room.getRobot().setPosition(new Position(13, 0));
                                         canvas.draw();
 
-                                        returningToStation = false;
+                                        // Robot tam o an (13,0) noktasına adımını attı ve ekran çizildi.
+                                        // Başka yere gitmesine izin vermeden usulca motoru durduruyoruz:
+                                        if (returnPathIndex == returnPath.size()) {
 
-                                        batteryManager.chargeBattery(room.getRobot());
 
-                                        System.out.println("Robot istasyona ulaştı ve şarj oldu.");
+                                            room.getRobot().setDirection(Direction.RIGHT);
+                                            canvas.draw(); // Sağa dönük halini ekrana çiz!
 
-                                        isRunning = false;
+                                            returningToStation = false;
 
-                                        // İŞTE FREN BURADA YAPILIYOR!
-                                        if (simulationTimer != null) {
-                                            simulationTimer.stop();
+                                            batteryManager.chargeBattery(room.getRobot());
+                                            System.out.println("Robot istasyona ulaştı ve şarj oldu.");
+
+                                            isRunning = false;
+                                            if (simulationTimer != null) {
+                                                simulationTimer.stop();
+                                                SoundEffect.supurgeSesiDurdur();
+                                            }
                                         }
+                                        return;
                                     }
                                 }
                                 Robot robot = room.getRobot();
