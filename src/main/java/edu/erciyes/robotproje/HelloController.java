@@ -1267,5 +1267,22 @@ public class HelloController
         return true;
     }
 
+    @FXML
+    public void onReturnToStationClick()
+    {
+        startReturnToStation();
+
+        if(simulationTimer != null)
+        {
+            simulationTimer.start();
+        }
+
+        isRunning = true;
+
+        System.out.println(
+                "İstasyona dön butonuna basıldı."
+        );
+    }
+
 }
 

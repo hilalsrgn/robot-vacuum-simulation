@@ -82,8 +82,15 @@
 
       <Button maxWidth="9999" onAction="#onSifirlaClick" prefHeight="28" style="-fx-background-color:#DC3545;                -fx-text-fill:white;                -fx-font-size:14;" text="🔄 Sıfırla" />
 
-      <Button maxWidth="9999" prefHeight="28" style="-fx-background-color:#17A2B8;                -fx-text-fill:white;                -fx-font-size:14;" text="🏠 İstasyona Dön" />
-
+        <Button
+                fx:id="returnButton"
+                onAction="#onReturnToStationClick"
+                maxWidth="9999"
+                prefHeight="28"
+                style="-fx-background-color:#17A2B8;
+           -fx-text-fill:white;
+           -fx-font-size:14;"
+                text="🏠 İstasyona Dön" />
 
       </VBox>
     </left>
