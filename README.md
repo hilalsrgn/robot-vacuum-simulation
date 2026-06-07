@@ -1,4 +1,4 @@
-# 🤖 Robot Vacuum Cleaning Simulation
+# 🤖 BZ214 Visual Programming Robot Vacuum Cleaning Simulation
 
 ##  About the Project
 
