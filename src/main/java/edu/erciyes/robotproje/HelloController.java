@@ -23,7 +23,6 @@ public class HelloController
     private long molaBitisZamani = 0;
     private Position kaldigiYer = null;
     private boolean molaDevamEdiyor = false;
-    // Bunu en tepeye, diğer @FXML tanımlarının yanına ekle
     private Position startPosition = new Position(13, 0);
     private boolean[][] visitedCells;
     private List<Position> returnPath;
@@ -31,77 +30,39 @@ public class HelloController
     private boolean returningToStation = false;
     private Random random = new Random();
     private List<Obstacle> userAddedObstacles = new ArrayList<>();
-
-    private BatteryManager batteryManager =
-            new BatteryManager();
-
+    private BatteryManager batteryManager = new BatteryManager();
     private List<Position> dirtPath = null;
     private int dirtPathIndex = 0;
+    private AnimationTimer simulationTimer;
+    private Room room; // Odaya buradan erişeceğiz
+    private SimulationCanvas canvas; // Çizim tuvaline erişim
+    // Şu an hangi aracın (kir mi mobilya mı) seçili olduğunu akılda tutmak için bir değişken
+    private String currentInteractionMode = "NONE"; // NONE, DIRT, OBSTACLE
+
 
     @FXML private Button startButton; // Sol paneldeki "Başlat" butonunun fx:id'si
-    private AnimationTimer simulationTimer;
-    private Room room; // Kızların odasına buradan erişeceğiz
-    private SimulationCanvas canvas; // Çizim tuvaline erişim
-
-
     @FXML private Button addDirtButton;
     @FXML private Button addObstacleButton;
     @FXML private RadioButton dustRadioButton;
     @FXML private RadioButton liquidRadioButton;
     @FXML private RadioButton stainRadioButton;
-
-
-    // Şu an hangi aracın (kir mi mobilya mı) seçili olduğunu akılda tutmak için bir değişken
-    private String currentInteractionMode = "NONE"; // NONE, DIRT, OBSTACLE
-
     @FXML private Label batteryPercentageLabel;
-
-    @FXML
-    private Slider speedSlider;
-
-    @FXML
-    private Label speedLabel;
-
-    @FXML
-    private RadioButton randomRadioButton;
-
-    @FXML
-    private RadioButton spiralRadioButton;
-
-    @FXML
-    private RadioButton wallFollowRadioButton;
-
-    @FXML
-    private AnchorPane simulationPane;
-
-    @FXML
-    private Label positionLabel;
-
-    @FXML
-    private Label directionLabel;
-
-    @FXML
-    private ProgressBar batteryBar;
-    @FXML
-    private Label totalAreaLabel;
-
-    @FXML
-    private Label cleanedAreaLabel;
-
-    @FXML
-    private Label remainingAreaLabel;
-
-    @FXML
-    private Label timeLabel;
-
-    @FXML
-    private Label dustLabel;
-
-    @FXML
-    private RadioButton armchairRadioButton;
-
-    @FXML
-    private RadioButton plantRadioButton;
+    @FXML private Slider speedSlider;
+    @FXML private Label speedLabel;
+    @FXML private RadioButton randomRadioButton;
+    @FXML private RadioButton spiralRadioButton;
+    @FXML private RadioButton wallFollowRadioButton;
+    @FXML private AnchorPane simulationPane;
+    @FXML private Label positionLabel;
+    @FXML private Label directionLabel;
+    @FXML private ProgressBar batteryBar;
+    @FXML private Label totalAreaLabel;
+    @FXML private Label cleanedAreaLabel;
+    @FXML private Label remainingAreaLabel;
+    @FXML private Label timeLabel;
+    @FXML private Label dustLabel;
+    @FXML private RadioButton armchairRadioButton;
+    @FXML private RadioButton plantRadioButton;
 
     private int initialDirtCount = 0;
     private boolean[][] initiallyDirty;
@@ -109,6 +70,7 @@ public class HelloController
     private boolean isRunning = false;
     private int elapsedSeconds = 0;
     private long lastSecondUpdate = 0;
+
     @FXML
     public void initialize()
     {
@@ -197,8 +159,6 @@ public class HelloController
                 )
         );
 
-
-
         for(Obstacle obstacle :
                 room.getObstacles())
         {
@@ -227,7 +187,7 @@ public class HelloController
         // Odanın gerçek hücre sayısını (toplam alanı) hesapla
         int totalArea = room.getRows() * room.getCols();
 
-// Alt paneli simülasyon açılır açılmaz gerçek değerlerle doldur
+        // Alt paneli simülasyon açılır açılmaz gerçek değerlerle doldur
         if (totalAreaLabel != null) {
             totalAreaLabel.setText(totalArea + " m²");
             remainingAreaLabel.setText(totalArea + " m² (100%)");
@@ -258,19 +218,11 @@ public class HelloController
         }
         room.setRobot(robot);
 
-        canvas =
-                new SimulationCanvas(room);
-
+        canvas = new SimulationCanvas(room);
         canvas.setMouseTransparent(true);
-
-        canvas.widthProperty().bind(
-                simulationPane.widthProperty());
-
-        canvas.heightProperty().bind(
-                simulationPane.heightProperty());
-
+        canvas.widthProperty().bind(simulationPane.widthProperty());
+        canvas.heightProperty().bind(simulationPane.heightProperty());
         simulationPane.getChildren().add(canvas);
-
         positionLabel.setText("Konum: (0,0)");
         directionLabel.setText("Yön: Sağ");
         batteryBar.setProgress(1.0);
