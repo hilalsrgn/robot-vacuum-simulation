@@ -1,6 +1,6 @@
 # 🤖 Robot Vacuum Cleaning Simulation
 
-## 📌 About the Project
+##  About the Project
 
 Robot Vacuum Cleaning Simulation is a robot vacuum cleaner simulation developed using JavaFX. The project aims to simulate a robot vacuum cleaner moving within a room, cleaning dirt, avoiding obstacles, and cleaning the environment using different cleaning algorithms.
 
@@ -8,15 +8,15 @@ The application allows users to customize the room environment, add dirt and fur
 
 ---
 
-## 🎯 Project Objective
+##  Project Objective
 
 This project was developed to simulate the behavior of an autonomous robot vacuum cleaner in a home environment. The goal is for the robot to navigate using different cleaning algorithms, avoid obstacles, clean dirt, and manage its battery level efficiently.
 
 ---
 
-## ✨ Features
+##  Features
 
-### 🤖 Robot Vacuum System
+### Robot Vacuum System
 
 * Robot navigation within the room
 * Real-time position tracking
@@ -46,13 +46,13 @@ This project was developed to simulate the behavior of an autonomous robot vacuu
 * Cell-based positioning system
 * Visual map representation
 
-### 🧠 Cleaning Algorithms
+###  Cleaning Algorithms
 
 * Random Cleaning
 * Spiral Cleaning
 * Wall Following
 
-### 🎮 User Interface
+###  User Interface
 
 * Cleaning algorithm selection
 * Speed control
@@ -63,7 +63,7 @@ This project was developed to simulate the behavior of an autonomous robot vacuu
 
 ---
 
-## 🧠 Cleaning Algorithms
+##  Cleaning Algorithms
 
 ### Random Algorithm
 
@@ -79,7 +79,7 @@ The robot follows walls and obstacles while cleaning the surrounding environment
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 The project follows the MVC (Model-View-Controller) architecture.
 
@@ -130,7 +130,7 @@ The following software is required to run the project:
 
 ---
 
-## 🚀 Installation and Setup
+##  Installation and Setup
 
 ### 1. Clone the Repository
 
@@ -147,7 +147,7 @@ git clone https://github.com/hilalsrgn/robot-vacuum-cleaning-simulation.git
 ---
 
 
-## 🚀 Usage Scenario
+##  Usage Scenario
 
 1. Launch the application.
 2. Select a cleaning algorithm.
@@ -172,7 +172,7 @@ During the development process, the following challenges were addressed:
 
 ---
 
-## 🔮 Future Improvements
+##  Future Improvements
 
 * Detection of inaccessible areas
 * Multiple room layouts
